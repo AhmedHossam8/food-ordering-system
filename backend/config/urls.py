@@ -32,6 +32,7 @@ def api_root(request):
             "users": "/api/users/",
             "menu": "/api/menu/",
             "orders": "/api/orders/",
+            "payment": "/api/orders/webhook/stripe/",
         },
     })
 

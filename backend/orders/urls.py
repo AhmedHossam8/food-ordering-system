@@ -5,8 +5,10 @@ from .views import (
     CreateOrderView,
     OrderDetailView,
     OrderListView,
+    PaymentIntentView,
     RemoveCartItemView,
     UpdateCartItemView,
+    stripe_webhook,
 )
 
 urlpatterns = [
@@ -17,4 +19,6 @@ urlpatterns = [
     path("", OrderListView.as_view(), name="order-list"),
     path("create/", CreateOrderView.as_view(), name="order-create"),
     path("<int:pk>/", OrderDetailView.as_view(), name="order-detail"),
+    path("<int:pk>/payment-intent/", PaymentIntentView.as_view(), name="payment-intent"),
+    path("webhook/stripe/", stripe_webhook, name="stripe-webhook"),
 ]
