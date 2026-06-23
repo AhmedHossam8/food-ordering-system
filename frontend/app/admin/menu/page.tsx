@@ -141,10 +141,10 @@ export default function AdminMenuPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border">
-                <th className="text-left py-3 px-4 font-medium text-text-secondary">{t("admin_menu.name")}</th>
-                <th className="text-left py-3 px-4 font-medium text-text-secondary">{t("admin_menu.name_ar")}</th>
-                <th className="text-left py-3 px-4 font-medium text-text-secondary">{t("admin_menu.category")}</th>
-                <th className="text-right py-3 px-4 font-medium text-text-secondary">{t("admin_menu.price")}</th>
+                <th className="text-start py-3 px-4 font-medium text-text-secondary">{t("admin_menu.name")}</th>
+                <th className="text-start py-3 px-4 font-medium text-text-secondary">{t("admin_menu.name_ar")}</th>
+                <th className="text-start py-3 px-4 font-medium text-text-secondary">{t("admin_menu.category")}</th>
+                <th className="text-end py-3 px-4 font-medium text-text-secondary">{t("admin_menu.price")}</th>
                 <th className="text-center py-3 px-4 font-medium text-text-secondary">{t("admin_menu.stock")}</th>
                 <th className="text-center py-3 px-4 font-medium text-text-secondary">{t("admin_menu.available")}</th>
                 <th className="py-3 px-4" />
@@ -156,7 +156,7 @@ export default function AdminMenuPage() {
                   <td className="py-3 px-4 font-medium">{item.name_localized || item.name}</td>
                   <td className="py-3 px-4 text-text-secondary">{item.name_ar || "\u2014"}</td>
                   <td className="py-3 px-4 text-text-secondary">{item.category_name}</td>
-                  <td className="py-3 px-4 text-right font-medium">${item.price}</td>
+                  <td className="py-3 px-4 text-end font-medium">${item.price}</td>
                   <td className="py-3 px-4 text-center text-text-secondary">{item.stock === 0 ? "\u221E" : item.stock}</td>
                   <td className="py-3 px-4 text-center">
                     <span className={`inline-block w-2.5 h-2.5 rounded-full ${item.is_available ? "bg-green-500" : "bg-red-400"}`} />

@@ -21,13 +21,15 @@ export default function MenuPage() {
 }
 
 interface MenuItem {
-  id: number; name: string; name_ar: string; description: string;
+  id: number; name: string; name_ar: string; name_localized?: string;
+  description: string; description_localized?: string;
   price: string; stock: number; is_available: boolean;
-  category: number; category_name: string; image: string | null;
+  category: number; category_name: string; category_name_localized?: string;
+  image: string | null;
 }
 
 interface Category {
-  id: number; name: string;
+  id: number; name: string; name_localized?: string;
 }
 
 function MenuPageContent() {
@@ -127,7 +129,7 @@ function MenuPageContent() {
                   onClick={() => setActiveCategory(activeCategory === cat.id ? null : cat.id)}
                   className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${activeCategory === cat.id ? "bg-primary-600 text-white" : "bg-surface-hover text-text-secondary hover:bg-primary-100"}`}
                 >
-                  {cat.name}
+                  {cat.name_localized || cat.name}
                 </button>
               ))}
             </div>
@@ -144,15 +146,15 @@ function MenuPageContent() {
             <Card key={item.id} hover onClick={() => { setSelectedItem(item); setQuantity(1); }}>
               <div className="h-40 bg-gradient-to-br from-primary-50 to-orange-50 rounded-t-xl flex items-center justify-center overflow-hidden">
                 {item.image ? (
-                  <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                  <img src={item.image} alt={item.name_localized || item.name} className="w-full h-full object-cover" />
                 ) : (
                   <span className="text-4xl text-primary-300 font-bold">+</span>
                 )}
               </div>
               <div className="p-4">
-                <p className="text-xs text-primary-600 font-medium uppercase tracking-wide">{item.category_name}</p>
-                <h3 className="font-semibold text-text-primary mt-1">{item.name}</h3>
-                <p className="text-xs text-text-muted mt-1 line-clamp-2">{item.description}</p>
+                <p className="text-xs text-primary-600 font-medium uppercase tracking-wide">{item.category_name_localized || item.category_name}</p>
+                <h3 className="font-semibold text-text-primary mt-1">{item.name_localized || item.name}</h3>
+                <p className="text-xs text-text-muted mt-1 line-clamp-2">{item.description_localized || item.description}</p>
                 <div className="flex items-center justify-between mt-3">
                   <span className="text-lg font-bold text-primary-600">${item.price}</span>
                   <Button size="sm" onClick={() => addToCart(item.id, 1)}>
@@ -166,18 +168,18 @@ function MenuPageContent() {
       )}
 
       {/* Item Detail Modal */}
-      <Modal open={!!selectedItem} onClose={() => setSelectedItem(null)} title={selectedItem?.name}>
+      <Modal open={!!selectedItem} onClose={() => setSelectedItem(null)} title={selectedItem?.name_localized || selectedItem?.name}>
         {selectedItem && (
           <div className="space-y-4">
             <div className="h-48 bg-gradient-to-br from-primary-50 to-orange-50 rounded-xl flex items-center justify-center">
               {selectedItem.image ? (
-                <img src={selectedItem.image} alt={selectedItem.name} className="w-full h-full object-cover rounded-xl" />
+                <img src={selectedItem.image} alt={selectedItem.name_localized || selectedItem.name} className="w-full h-full object-cover rounded-xl" />
               ) : (
                 <span className="text-6xl text-primary-300 font-bold">+</span>
               )}
             </div>
-            <p className="text-xs text-primary-600 font-medium uppercase">{selectedItem.category_name}</p>
-            <p className="text-text-secondary text-sm">{selectedItem.description}</p>
+            <p className="text-xs text-primary-600 font-medium uppercase">{selectedItem.category_name_localized || selectedItem.category_name}</p>
+            <p className="text-text-secondary text-sm">{selectedItem.description_localized || selectedItem.description}</p>
             <p className="text-sm text-text-muted">
               {selectedItem.stock > 0 ? t("menu.in_stock", { count: selectedItem.stock }) : t("menu.always_available")}
             </p>

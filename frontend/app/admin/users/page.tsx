@@ -66,9 +66,9 @@ export default function AdminUsersPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border">
-                <th className="text-left py-3 px-4 font-medium text-text-secondary">{t("admin_users.id")}</th>
-                <th className="text-left py-3 px-4 font-medium text-text-secondary">{t("admin_users.username")}</th>
-                <th className="text-left py-3 px-4 font-medium text-text-secondary">{t("admin_users.email")}</th>
+                <th className="text-start py-3 px-4 font-medium text-text-secondary">{t("admin_users.id")}</th>
+                <th className="text-start py-3 px-4 font-medium text-text-secondary">{t("admin_users.username")}</th>
+                <th className="text-start py-3 px-4 font-medium text-text-secondary">{t("admin_users.email")}</th>
                 <th className="text-center py-3 px-4 font-medium text-text-secondary">{t("admin_users.staff")}</th>
                 <th className="py-3 px-4" />
               </tr>

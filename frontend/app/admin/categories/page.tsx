@@ -105,9 +105,9 @@ export default function AdminCategoriesPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border">
-                <th className="text-left py-3 px-4 font-medium text-text-secondary">#</th>
-                <th className="text-left py-3 px-4 font-medium text-text-secondary">{t("admin_cat.name")}</th>
-                <th className="text-left py-3 px-4 font-medium text-text-secondary">{t("admin_cat.name_ar")}</th>
+                <th className="text-start py-3 px-4 font-medium text-text-secondary">#</th>
+                <th className="text-start py-3 px-4 font-medium text-text-secondary">{t("admin_cat.name")}</th>
+                <th className="text-start py-3 px-4 font-medium text-text-secondary">{t("admin_cat.name_ar")}</th>
                 <th className="text-center py-3 px-4 font-medium text-text-secondary">{t("admin_cat.display_order")}</th>
                 <th className="py-3 px-4" />
               </tr>

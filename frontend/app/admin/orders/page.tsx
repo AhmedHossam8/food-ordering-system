@@ -82,12 +82,12 @@ export default function AdminOrdersPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border">
-                <th className="text-left py-3 px-4 font-medium text-text-secondary">{t("admin_orders.id")}</th>
-                <th className="text-left py-3 px-4 font-medium text-text-secondary">{t("admin_orders.user")}</th>
-                <th className="text-left py-3 px-4 font-medium text-text-secondary">{t("admin_orders.status")}</th>
-                <th className="text-left py-3 px-4 font-medium text-text-secondary">{t("admin_orders.payment")}</th>
-                <th className="text-right py-3 px-4 font-medium text-text-secondary">{t("admin_orders.total")}</th>
-                <th className="text-left py-3 px-4 font-medium text-text-secondary">{t("admin_orders.date")}</th>
+                <th className="text-start py-3 px-4 font-medium text-text-secondary">{t("admin_orders.id")}</th>
+                <th className="text-start py-3 px-4 font-medium text-text-secondary">{t("admin_orders.user")}</th>
+                <th className="text-start py-3 px-4 font-medium text-text-secondary">{t("admin_orders.status")}</th>
+                <th className="text-start py-3 px-4 font-medium text-text-secondary">{t("admin_orders.payment")}</th>
+                <th className="text-end py-3 px-4 font-medium text-text-secondary">{t("admin_orders.total")}</th>
+                <th className="text-start py-3 px-4 font-medium text-text-secondary">{t("admin_orders.date")}</th>
                 <th className="py-3 px-4" />
               </tr>
             </thead>
@@ -98,7 +98,7 @@ export default function AdminOrdersPage() {
                   <td className="py-3 px-4 text-text-secondary">{order.user_name || `User #${order.user}`}</td>
                   <td className="py-3 px-4"><StatusBadge status={order.status} /></td>
                   <td className="py-3 px-4"><PaymentBadge status={order.payment_status} /></td>
-                  <td className="py-3 px-4 text-right font-medium">${order.total_price}</td>
+                  <td className="py-3 px-4 text-end font-medium">${order.total_price}</td>
                   <td className="py-3 px-4 text-text-secondary text-xs">
                     {new Date(order.created_at).toLocaleDateString()}
                   </td>
