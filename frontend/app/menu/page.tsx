@@ -81,6 +81,7 @@ function MenuPageContent() {
       toast.success(t("menu.added_to_cart"));
       setSelectedItem(null);
       setQuantity(1);
+      useAuthStore.getState().refreshCartCount();
     } catch { toast.error(t("menu.add_failed")); }
   };
 

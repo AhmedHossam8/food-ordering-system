@@ -10,6 +10,7 @@ const en: Record<string, string> = {
   "nav.admin_panel": "Admin Panel",
   "nav.logout": "Logout",
   "nav.lang_btn": "عربي",
+  "nav.view_cart": "View Cart",
 
   /* Footer */
   "footer.desc": "Delicious food, delivered fast. Order your favorite meals online.",
@@ -99,6 +100,7 @@ const en: Record<string, string> = {
   "cart.clear": "Clear All",
   "cart.each": "each",
   "cart.subtotal": "Subtotal",
+  "cart.qty_label": "Qty:",
   "cart.delivery": "Delivery",
   "cart.free": "Free",
   "cart.total": "Total",
@@ -332,6 +334,7 @@ const ar: Record<string, string> = {
   "nav.admin_panel": "لوحة التحكم",
   "nav.logout": "تسجيل الخروج",
   "nav.lang_btn": "EN",
+  "nav.view_cart": "عرض السلة",
 
   /* Footer */
   "footer.desc": "طعام لذيذ، توصيل سريع. اطلب وجباتك المفضلة أونلاين.",
@@ -420,6 +423,7 @@ const ar: Record<string, string> = {
   "cart.clear": "مسح الكل",
   "cart.each": "للقطعة",
   "cart.subtotal": "المجموع الفرعي",
+  "cart.qty_label": "الكمية:",
   "cart.delivery": "التوصيل",
   "cart.free": "مجاني",
   "cart.total": "المجموع",

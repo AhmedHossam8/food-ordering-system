@@ -24,7 +24,12 @@ function getStoredUser(): UserData | null {
   }
 }
 
-export const useAuthStore = create<AuthState>((set, get) => ({
+interface CartState {
+  cartCount: number;
+  refreshCartCount: () => Promise<void>;
+}
+
+export const useAuthStore = create<AuthState & CartState>((set, get) => ({
   user: getStoredUser(),
   token: typeof window !== "undefined" ? localStorage.getItem("access_token") : null,
   setAuth: (user, access, refresh) => {
@@ -37,11 +42,20 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
     localStorage.removeItem("user_data");
-    set({ user: null, token: null });
+    set({ user: null, token: null, cartCount: 0 });
     window.location.href = "/login";
   },
   isAuthenticated: () => {
     if (typeof window === "undefined") return false;
     return !!localStorage.getItem("access_token");
+  },
+  cartCount: 0,
+  refreshCartCount: async () => {
+    if (typeof window === "undefined") return;
+    try {
+      const { default: api } = await import("@/lib/api");
+      const { data } = await api.get("/api/orders/cart/");
+      set({ cartCount: (data.items || []).length });
+    } catch { set({ cartCount: 0 }); }
   },
 }));
