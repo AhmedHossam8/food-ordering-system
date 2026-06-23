@@ -177,13 +177,6 @@ export default function Navbar() {
                           </div>
                           <div className="border-t border-border px-4 py-2 flex gap-2">
                             <Link
-                              href="/cart"
-                              onClick={() => setCartOpen(false)}
-                              className="flex-1 text-center text-sm font-medium text-text-secondary border border-border rounded-lg px-3 py-1.5 hover:bg-surface-hover transition-colors"
-                            >
-                              {t("nav.view_cart")}
-                            </Link>
-                            <Link
                               href="/checkout"
                               onClick={() => setCartOpen(false)}
                               className="flex-1 text-center text-sm font-medium bg-primary-600 text-white rounded-lg px-3 py-1.5 hover:bg-primary-700 transition-colors"
