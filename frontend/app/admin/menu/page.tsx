@@ -142,6 +142,7 @@ export default function AdminMenuPage() {
             <thead>
               <tr className="border-b border-border">
                 <th className="text-left py-3 px-4 font-medium text-text-secondary">{t("admin_menu.name")}</th>
+                <th className="text-left py-3 px-4 font-medium text-text-secondary">{t("admin_menu.name_ar")}</th>
                 <th className="text-left py-3 px-4 font-medium text-text-secondary">{t("admin_menu.category")}</th>
                 <th className="text-right py-3 px-4 font-medium text-text-secondary">{t("admin_menu.price")}</th>
                 <th className="text-center py-3 px-4 font-medium text-text-secondary">{t("admin_menu.stock")}</th>
@@ -153,6 +154,7 @@ export default function AdminMenuPage() {
               {items.map((item) => (
                 <tr key={item.id} className="hover:bg-surface-hover transition-colors">
                   <td className="py-3 px-4 font-medium">{item.name}</td>
+                  <td className="py-3 px-4 text-text-secondary">{item.name_ar || "\u2014"}</td>
                   <td className="py-3 px-4 text-text-secondary">{item.category_name}</td>
                   <td className="py-3 px-4 text-right font-medium">${item.price}</td>
                   <td className="py-3 px-4 text-center text-text-secondary">{item.stock === 0 ? "\u221E" : item.stock}</td>
