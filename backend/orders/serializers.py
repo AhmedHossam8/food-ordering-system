@@ -55,7 +55,7 @@ class AddToCartSerializer(serializers.Serializer):
     quantity = serializers.IntegerField(min_value=1, default=1)
 
     def create(self, validated_data):
-        cart = self.context["cart"]
+        cart = validated_data.pop("cart")
         menu_item = validated_data["menu_item"]
         quantity = validated_data.get("quantity", 1)
 

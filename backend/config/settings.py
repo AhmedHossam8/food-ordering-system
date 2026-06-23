@@ -75,14 +75,19 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'food_ordering',
-        'USER': 'food_user',
-        'PASSWORD': 'food_pass123',
-        'HOST': 'localhost',
-        'PORT': '5433',
+        'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.postgresql'),
+        'NAME': os.getenv('DB_NAME', 'food_ordering'),
+        'USER': os.getenv('DB_USER', 'food_user'),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'food_pass123'),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('DB_PORT', '5433'),
     }
 }
+
+import sys
+if 'test' in sys.argv or 'test_coverage' in sys.argv:
+    DATABASES['default']['ENGINE'] = 'django.db.backends.sqlite3'
+    DATABASES['default']['NAME'] = ':memory:'
 
 
 # Password validation

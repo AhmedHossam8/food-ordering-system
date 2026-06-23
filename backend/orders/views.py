@@ -230,3 +230,36 @@ class OrderStatusUpdateView(generics.UpdateAPIView):
             )
 
         return Response(OrderSerializer(order).data)
+
+
+class CancelOrderView(generics.CreateAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        try:
+            order = Order.objects.get(id=kwargs["pk"], user=request.user)
+        except Order.DoesNotExist:
+            return Response(
+                {"detail": "Order not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if order.status not in (Order.Status.PENDING, Order.Status.CONFIRMED):
+            return Response(
+                {"detail": "Only pending or confirmed orders can be cancelled."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            order.set_status(
+                Order.Status.CANCELLED,
+                user=request.user,
+                note=request.data.get("note", "Cancelled by user"),
+            )
+        except ValueError as e:
+            return Response(
+                {"detail": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(OrderSerializer(order).data)
