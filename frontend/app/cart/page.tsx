@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
 import { useLanguage } from "@/lib/language";
+import { formatPrice } from "@/lib/utils";
 import toast from "react-hot-toast";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -10,12 +11,12 @@ import Spinner from "@/components/ui/Spinner";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 interface CartItem {
-  id: number; menu_item: number; menu_item_name: string;
+  id: number; menu_item: number; menu_item_name: string; menu_item_name_localized?: string;
   menu_item_price: string; quantity: number; subtotal: string;
 }
 
 export default function CartPage() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [items, setItems] = useState<CartItem[]>([]);
   const [total, setTotal] = useState("0.00");
   const [loading, setLoading] = useState(true);
@@ -85,8 +86,8 @@ export default function CartPage() {
           <Card key={item.id} className="p-4">
             <div className="flex items-center gap-4">
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-text-primary truncate">{item.menu_item_name}</h3>
-                <p className="text-sm text-text-secondary">${parseFloat(item.menu_item_price).toFixed(2)} {t("cart.each")}</p>
+                <h3 className="font-semibold text-text-primary truncate">{item.menu_item_name_localized || item.menu_item_name}</h3>
+                <p className="text-sm text-text-secondary">{formatPrice(item.menu_item_price, lang)} {t("cart.each")}</p>
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -108,7 +109,7 @@ export default function CartPage() {
                 </button>
               </div>
               <span className="w-20 text-right font-semibold text-text-primary">
-                ${parseFloat(item.subtotal).toFixed(2)}
+                {formatPrice(item.subtotal, lang)}
               </span>
               <button
                 onClick={() => removeItem(item.id)}
@@ -128,7 +129,7 @@ export default function CartPage() {
       <Card className="p-6">
         <div className="flex items-center justify-between mb-2">
           <span className="text-text-secondary">{t("cart.subtotal")}</span>
-          <span className="font-medium">${total}</span>
+          <span className="font-medium">{formatPrice(total, lang)}</span>
         </div>
         <div className="flex items-center justify-between mb-4 text-text-secondary">
           <span>{t("cart.delivery")}</span>
@@ -136,7 +137,7 @@ export default function CartPage() {
         </div>
         <div className="border-t border-border pt-4 flex items-center justify-between">
           <span className="text-lg font-bold text-text-primary">{t("cart.total")}</span>
-          <span className="text-2xl font-bold text-primary-600">${total}</span>
+          <span className="text-2xl font-bold text-primary-600">{formatPrice(total, lang)}</span>
         </div>
         <Button className="w-full mt-6" size="lg" onClick={() => router.push("/checkout")}>
           {t("cart.checkout")}

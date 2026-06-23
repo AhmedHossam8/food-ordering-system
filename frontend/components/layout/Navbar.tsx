@@ -8,7 +8,7 @@ import api from "@/lib/api";
 import { formatPrice } from "@/lib/utils";
 
 interface CartItem {
-  id: number; menu_item: number; menu_item_name: string;
+  id: number; menu_item: number; menu_item_name: string; menu_item_name_localized?: string;
   menu_item_price: string; quantity: number; subtotal: string;
 }
 
@@ -138,7 +138,7 @@ export default function Navbar() {
                             {cartItems.map((item) => (
                               <div key={item.id} className="flex items-center gap-3 px-4 py-2.5 hover:bg-surface-hover">
                                 <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium text-text-primary truncate">{item.menu_item_name}</p>
+                                  <p className="text-sm font-medium text-text-primary truncate">{item.menu_item_name_localized || item.menu_item_name}</p>
                                   <p className="text-xs text-text-muted">{formatPrice(item.menu_item_price, lang)} {t("cart.each")}</p>
                                 </div>
                                 <div className="flex items-center gap-1">

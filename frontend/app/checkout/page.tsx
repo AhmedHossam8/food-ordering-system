@@ -172,7 +172,7 @@ export default function CheckoutPage() {
             <div className="space-y-3 mb-4">
               {items.map((item: any) => (
                 <div key={item.id} className="flex justify-between text-sm">
-                  <span className="text-text-secondary">{item.menu_item_name} x{item.quantity}</span>
+                  <span className="text-text-secondary">{(item.menu_item_name_localized || item.menu_item_name)} x{item.quantity}</span>
                   <span className="font-medium">{formatPrice(item.subtotal, lang)}</span>
                 </div>
               ))}
