@@ -63,7 +63,10 @@ export default function CheckoutPage() {
 
   const placeOrder = async () => {
     const delivery_address = combineAddress();
-    if (!delivery_address.trim()) { setAddressError(t("checkout.enter_address")); return; }
+    if (!delivery_address.trim() || !city.trim() || !district.trim() || !street.trim() || !building.trim() || !floor.trim() || !flat.trim()) {
+      setAddressError(t("checkout.enter_address"));
+      return;
+    }
     setSubmitting(true);
     try {
       const { data } = await api.post("/api/orders/create/", {
@@ -166,31 +169,37 @@ export default function CheckoutPage() {
                     placeholder={t("checkout.address_city")}
                     value={city}
                     onChange={(e) => { setCity(e.target.value); setAddressError(""); }}
+                    required
                   />
                   <Input
                     placeholder={t("checkout.address_district")}
                     value={district}
                     onChange={(e) => { setDistrict(e.target.value); setAddressError(""); }}
+                    required
                   />
                   <Input
                     placeholder={t("checkout.address_street")}
                     value={street}
                     onChange={(e) => { setStreet(e.target.value); setAddressError(""); }}
+                    required
                   />
                   <Input
                     placeholder={t("checkout.address_building")}
                     value={building}
                     onChange={(e) => { setBuilding(e.target.value); setAddressError(""); }}
+                    required
                   />
                   <Input
                     placeholder={t("checkout.address_floor")}
                     value={floor}
                     onChange={(e) => { setFloor(e.target.value); setAddressError(""); }}
+                    required
                   />
                   <Input
                     placeholder={t("checkout.address_flat")}
                     value={flat}
                     onChange={(e) => { setFlat(e.target.value); setAddressError(""); }}
+                    required
                   />
                 </div>
                 {addressError && <p className="text-xs text-error mt-1">{addressError}</p>}
