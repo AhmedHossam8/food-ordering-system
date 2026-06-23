@@ -9,6 +9,10 @@ const api = axios.create({
 
 api.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
+    const skipAuthPaths = ["/api/users/login/", "/api/users/register/", "/api/users/password-reset/", "/api/users/token/refresh/"];
+    if (skipAuthPaths.some((p) => config.url?.includes(p))) {
+      return config;
+    }
     const token = localStorage.getItem("access_token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;

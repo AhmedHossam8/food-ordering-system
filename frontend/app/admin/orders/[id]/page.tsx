@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import api from "@/lib/api";
+import { useLanguage } from "@/lib/language";
 import toast from "react-hot-toast";
 import Card from "@/components/ui/Card";
 import Spinner from "@/components/ui/Spinner";
@@ -10,6 +11,7 @@ import Button from "@/components/ui/Button";
 import { StatusBadge, PaymentBadge } from "@/components/ui/Badge";
 
 export default function AdminOrderDetailPage() {
+  const { t } = useLanguage();
   const { id } = useParams();
   const router = useRouter();
   const [order, setOrder] = useState<any>(null);
@@ -25,9 +27,9 @@ export default function AdminOrderDetailPage() {
         setOrder(data);
         setNewStatus(data.status);
       })
-      .catch(() => { toast.error("Order not found"); router.push("/admin/orders"); })
+      .catch(() => { toast.error(t("admin_order.not_found")); router.push("/admin/orders"); })
       .finally(() => setLoading(false));
-  }, [id, router]);
+  }, [id, router, t]);
 
   const updateStatus = async () => {
     if (!newStatus || newStatus === order.status) return;
@@ -39,9 +41,9 @@ export default function AdminOrderDetailPage() {
       });
       setOrder(data);
       setNote("");
-      toast.success("Status updated!");
+      toast.success(t("admin_order.updated"));
     } catch (err: any) {
-      toast.error(err.response?.data?.detail || "Failed to update");
+      toast.error(err.response?.data?.detail || t("admin_order.update_error"));
     } finally { setUpdating(false); }
   };
 
@@ -82,20 +84,20 @@ export default function AdminOrderDetailPage() {
         <div className="lg:col-span-2 space-y-6">
           {/* Items */}
           <Card className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Items</h2>
+            <h2 className="text-lg font-semibold mb-4">{t("admin_order.items")}</h2>
             <div className="divide-y divide-border">
               {order.items?.map((item: any) => (
                 <div key={item.id} className="flex justify-between py-3">
                   <div>
                     <p className="font-medium">{item.menu_item_name}</p>
-                    <p className="text-sm text-text-secondary">Qty: {item.quantity} × ${parseFloat(item.unit_price).toFixed(2)}</p>
+                    <p className="text-sm text-text-secondary">{t("admin_order.qty")} {item.quantity} × ${parseFloat(item.unit_price).toFixed(2)}</p>
                   </div>
                   <span className="font-semibold">${(item.quantity * parseFloat(item.unit_price)).toFixed(2)}</span>
                 </div>
               ))}
             </div>
             <div className="border-t pt-4 flex justify-between text-lg font-bold">
-              <span>Total</span>
+              <span>{t("admin_order.total")}</span>
               <span className="text-primary-600">${order.total_price}</span>
             </div>
           </Card>
@@ -103,7 +105,7 @@ export default function AdminOrderDetailPage() {
           {/* Update Status */}
           {allowed.length > 0 && (
             <Card className="p-6">
-              <h2 className="text-lg font-semibold mb-4">Update Status</h2>
+              <h2 className="text-lg font-semibold mb-4">{t("admin_order.update_status")}</h2>
               <div className="space-y-4">
                 <div className="flex gap-2 flex-wrap">
                   {allowed.map((s) => (
@@ -114,19 +116,19 @@ export default function AdminOrderDetailPage() {
                         newStatus === s ? "bg-primary-600 text-white" : "bg-surface-hover text-text-secondary hover:bg-primary-100"
                       }`}
                     >
-                      {s.charAt(0).toUpperCase() + s.slice(1)}
+                      {t(`status.${s}`)}
                     </button>
                   ))}
                 </div>
                 <input
                   type="text"
-                  placeholder="Optional note..."
+                  placeholder={t("admin_order.note_placeholder")}
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   className="w-full px-4 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
                 <Button loading={updating} onClick={updateStatus} disabled={newStatus === order.status}>
-                  Update Status
+                  {t("admin_order.update_btn")}
                 </Button>
               </div>
             </Card>
@@ -135,7 +137,7 @@ export default function AdminOrderDetailPage() {
           {/* Status Log */}
           {order.status_logs?.length > 0 && (
             <Card className="p-6">
-              <h2 className="text-lg font-semibold mb-4">Status History</h2>
+              <h2 className="text-lg font-semibold mb-4">{t("admin_order.status_history")}</h2>
               <div className="space-y-3">
                 {order.status_logs.map((log: any) => (
                   <div key={log.id} className="flex items-center gap-3 text-sm">
@@ -156,25 +158,25 @@ export default function AdminOrderDetailPage() {
         {/* Sidebar */}
         <div className="space-y-4">
           <Card className="p-5">
-            <h3 className="font-semibold text-sm text-text-secondary uppercase tracking-wide mb-3">Customer</h3>
+            <h3 className="font-semibold text-sm text-text-secondary uppercase tracking-wide mb-3">{t("admin_order.customer")}</h3>
             <p className="text-sm font-medium">{order.user_name || `User #${order.user}`}</p>
           </Card>
           <Card className="p-5">
-            <h3 className="font-semibold text-sm text-text-secondary uppercase tracking-wide mb-3">Payment</h3>
+            <h3 className="font-semibold text-sm text-text-secondary uppercase tracking-wide mb-3">{t("admin_order.payment")}</h3>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-text-secondary">Method</span>
+                <span className="text-text-secondary">{t("admin_order.method")}</span>
                 <span className="font-medium capitalize">{order.payment_method}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-text-secondary">Status</span>
+                <span className="text-text-secondary">{t("admin_order.status")}</span>
                 <PaymentBadge status={order.payment_status} />
               </div>
             </div>
           </Card>
           {order.delivery_address && (
             <Card className="p-5">
-              <h3 className="font-semibold text-sm text-text-secondary uppercase tracking-wide mb-3">Delivery</h3>
+              <h3 className="font-semibold text-sm text-text-secondary uppercase tracking-wide mb-3">{t("admin_order.delivery")}</h3>
               <p className="text-sm">{order.delivery_address}</p>
             </Card>
           )}

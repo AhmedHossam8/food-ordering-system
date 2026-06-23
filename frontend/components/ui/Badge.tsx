@@ -1,3 +1,6 @@
+"use client";
+import { useLanguage } from "@/lib/language";
+
 interface BadgeProps {
   children: React.ReactNode;
   variant?: "default" | "success" | "warning" | "danger" | "info" | "purple";
@@ -22,25 +25,27 @@ export default function Badge({ children, variant = "default", className = "" }:
 }
 
 export function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, { label: string; variant: "default" | "success" | "warning" | "danger" | "info" | "purple" }> = {
-    pending: { label: "Pending", variant: "warning" },
-    confirmed: { label: "Confirmed", variant: "info" },
-    preparing: { label: "Preparing", variant: "purple" },
-    ready: { label: "Ready", variant: "success" },
-    delivered: { label: "Delivered", variant: "default" },
-    cancelled: { label: "Cancelled", variant: "danger" },
+  const { t } = useLanguage();
+  const map: Record<string, { key: string; variant: "default" | "success" | "warning" | "danger" | "info" | "purple" }> = {
+    pending: { key: "status.pending", variant: "warning" },
+    confirmed: { key: "status.confirmed", variant: "info" },
+    preparing: { key: "status.preparing", variant: "purple" },
+    ready: { key: "status.ready", variant: "success" },
+    delivered: { key: "status.delivered", variant: "default" },
+    cancelled: { key: "status.cancelled", variant: "danger" },
   };
-  const s = map[status] || { label: status, variant: "default" as const };
-  return <Badge variant={s.variant}>{s.label}</Badge>;
+  const s = map[status] || { key: status, variant: "default" as const };
+  return <Badge variant={s.variant}>{t(s.key)}</Badge>;
 }
 
 export function PaymentBadge({ status }: { status: string }) {
-  const map: Record<string, { label: string; variant: "default" | "success" | "warning" | "danger" | "info" }> = {
-    pending: { label: "Pending", variant: "warning" },
-    paid: { label: "Paid", variant: "success" },
-    failed: { label: "Failed", variant: "danger" },
-    refunded: { label: "Refunded", variant: "info" },
+  const { t } = useLanguage();
+  const map: Record<string, { key: string; variant: "default" | "success" | "warning" | "danger" | "info" }> = {
+    pending: { key: "payment.pending", variant: "warning" },
+    paid: { key: "payment.paid", variant: "success" },
+    failed: { key: "payment.failed", variant: "danger" },
+    refunded: { key: "payment.refunded", variant: "info" },
   };
-  const s = map[status] || { label: status, variant: "default" as const };
-  return <Badge variant={s.variant}>{s.label}</Badge>;
+  const s = map[status] || { key: status, variant: "default" as const };
+  return <Badge variant={s.variant}>{t(s.key)}</Badge>;
 }

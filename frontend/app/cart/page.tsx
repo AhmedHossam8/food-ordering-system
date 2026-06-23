@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
+import { useLanguage } from "@/lib/language";
 import toast from "react-hot-toast";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -14,6 +15,7 @@ interface CartItem {
 }
 
 export default function CartPage() {
+  const { t } = useLanguage();
   const [items, setItems] = useState<CartItem[]>([]);
   const [total, setTotal] = useState("0.00");
   const [loading, setLoading] = useState(true);
@@ -25,7 +27,7 @@ export default function CartPage() {
       const { data } = await api.get("/api/orders/cart/");
       setItems(data.items || []);
       setTotal(data.total || "0.00");
-    } catch { toast.error("Failed to load cart"); }
+    } catch { toast.error(t("cart.load_error")); }
     finally { setLoading(false); }
   };
 
@@ -37,7 +39,7 @@ export default function CartPage() {
     try {
       await api.patch(`/api/orders/cart/items/${itemId}/`, { quantity: qty });
       await fetchCart();
-    } catch { toast.error("Failed to update"); }
+    } catch { toast.error(t("cart.update_error")); }
     finally { setUpdating(null); }
   };
 
@@ -45,9 +47,9 @@ export default function CartPage() {
     setUpdating(itemId);
     try {
       await api.delete(`/api/orders/cart/items/${itemId}/remove/`);
-      toast.success("Item removed");
+      toast.success(t("cart.removed"));
       await fetchCart();
-    } catch { toast.error("Failed to remove"); }
+    } catch { toast.error(t("cart.remove_error")); }
     finally { setUpdating(null); }
   };
 
@@ -57,10 +59,10 @@ export default function CartPage() {
     return (
       <div className="max-w-4xl mx-auto px-4 py-16">
         <EmptyState
-          icon="🛒"
-          title="Your cart is empty"
-          description="Looks like you haven't added anything yet."
-          action={<Button href="/menu">Browse Menu</Button>}
+          icon="?"
+          title={t("cart.empty_title")}
+          description={t("cart.empty_desc")}
+          action={<Button href="/menu">{t("cart.browse_menu")}</Button>}
         />
       </div>
     );
@@ -70,11 +72,11 @@ export default function CartPage() {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-text-primary">Your Cart</h1>
-          <p className="text-text-secondary text-sm mt-1">{items.length} item{items.length !== 1 ? "s" : ""}</p>
+          <h1 className="text-3xl font-bold text-text-primary">{t("cart.title")}</h1>
+          <p className="text-text-secondary text-sm mt-1">{items.length} {items.length !== 1 ? t("cart.items") : t("cart.item")}</p>
         </div>
         <Button variant="ghost" onClick={() => { setItems([]); setTotal("0.00"); }}>
-          Clear All
+          {t("cart.clear")}
         </Button>
       </div>
 
@@ -84,7 +86,7 @@ export default function CartPage() {
             <div className="flex items-center gap-4">
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-text-primary truncate">{item.menu_item_name}</h3>
-                <p className="text-sm text-text-secondary">${parseFloat(item.menu_item_price).toFixed(2)} each</p>
+                <p className="text-sm text-text-secondary">${parseFloat(item.menu_item_price).toFixed(2)} {t("cart.each")}</p>
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -125,19 +127,19 @@ export default function CartPage() {
       {/* Summary */}
       <Card className="p-6">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-text-secondary">Subtotal</span>
+          <span className="text-text-secondary">{t("cart.subtotal")}</span>
           <span className="font-medium">${total}</span>
         </div>
         <div className="flex items-center justify-between mb-4 text-text-secondary">
-          <span>Delivery</span>
-          <span className="font-medium text-success">Free</span>
+          <span>{t("cart.delivery")}</span>
+          <span className="font-medium text-success">{t("cart.free")}</span>
         </div>
         <div className="border-t border-border pt-4 flex items-center justify-between">
-          <span className="text-lg font-bold text-text-primary">Total</span>
+          <span className="text-lg font-bold text-text-primary">{t("cart.total")}</span>
           <span className="text-2xl font-bold text-primary-600">${total}</span>
         </div>
         <Button className="w-full mt-6" size="lg" onClick={() => router.push("/checkout")}>
-          Proceed to Checkout
+          {t("cart.checkout")}
         </Button>
       </Card>
     </div>

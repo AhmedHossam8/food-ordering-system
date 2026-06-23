@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import api from "@/lib/api";
+import { useLanguage } from "@/lib/language";
 import Card from "@/components/ui/Card";
 import Spinner from "@/components/ui/Spinner";
 import { StatusBadge, PaymentBadge } from "@/components/ui/Badge";
@@ -15,6 +16,7 @@ interface Order {
 }
 
 export default function AdminOrdersPage() {
+  const { t } = useLanguage();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("");
@@ -40,10 +42,10 @@ export default function AdminOrdersPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-text-primary">Orders Management</h1>
-          <p className="text-text-secondary text-sm mt-1">View and manage all orders</p>
+          <h1 className="text-3xl font-bold text-text-primary">{t("admin_orders.title")}</h1>
+          <p className="text-text-secondary text-sm mt-1">{t("admin_orders.subtitle")}</p>
         </div>
-        <Link href="/admin" className="text-sm text-primary-600 hover:underline">Back to Dashboard</Link>
+        <Link href="/admin" className="text-sm text-primary-600 hover:underline">{t("admin_orders.back")}</Link>
       </div>
 
       {/* Filters */}
@@ -57,13 +59,13 @@ export default function AdminOrdersPage() {
                 statusFilter === s ? "bg-primary-600 text-white" : "bg-surface-hover text-text-secondary hover:bg-primary-100"
               }`}
             >
-              {s ? s.charAt(0).toUpperCase() + s.slice(1) : "All"}
+              {s ? t(`status.${s}`) : t("admin_orders.all")}
             </button>
           ))}
         </div>
         <input
           type="text"
-          placeholder="Search by username or address..."
+          placeholder={t("admin_orders.search")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && fetchOrders()}
@@ -74,18 +76,18 @@ export default function AdminOrdersPage() {
       {loading ? (
         <div className="flex justify-center py-16"><Spinner className="h-8 w-8" /></div>
       ) : orders.length === 0 ? (
-        <p className="text-center py-16 text-text-secondary">No orders found</p>
+        <p className="text-center py-16 text-text-secondary">{t("admin_orders.empty")}</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border">
-                <th className="text-left py-3 px-4 font-medium text-text-secondary">ID</th>
-                <th className="text-left py-3 px-4 font-medium text-text-secondary">User</th>
-                <th className="text-left py-3 px-4 font-medium text-text-secondary">Status</th>
-                <th className="text-left py-3 px-4 font-medium text-text-secondary">Payment</th>
-                <th className="text-right py-3 px-4 font-medium text-text-secondary">Total</th>
-                <th className="text-left py-3 px-4 font-medium text-text-secondary">Date</th>
+                <th className="text-left py-3 px-4 font-medium text-text-secondary">{t("admin_orders.id")}</th>
+                <th className="text-left py-3 px-4 font-medium text-text-secondary">{t("admin_orders.user")}</th>
+                <th className="text-left py-3 px-4 font-medium text-text-secondary">{t("admin_orders.status")}</th>
+                <th className="text-left py-3 px-4 font-medium text-text-secondary">{t("admin_orders.payment")}</th>
+                <th className="text-right py-3 px-4 font-medium text-text-secondary">{t("admin_orders.total")}</th>
+                <th className="text-left py-3 px-4 font-medium text-text-secondary">{t("admin_orders.date")}</th>
                 <th className="py-3 px-4" />
               </tr>
             </thead>
@@ -102,7 +104,7 @@ export default function AdminOrdersPage() {
                   </td>
                   <td className="py-3 px-4">
                     <Link href={`/admin/orders/${order.id}`} className="text-primary-600 hover:underline text-xs font-medium">
-                      View
+                      {t("admin_orders.view")}
                     </Link>
                   </td>
                 </tr>

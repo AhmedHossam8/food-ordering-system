@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import api from "@/lib/api";
+import { useLanguage } from "@/lib/language";
 import toast from "react-hot-toast";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -23,6 +24,7 @@ interface Order {
 }
 
 export default function OrderDetailPage() {
+  const { t } = useLanguage();
   const { id } = useParams();
   const router = useRouter();
   const [order, setOrder] = useState<Order | null>(null);
@@ -33,19 +35,19 @@ export default function OrderDetailPage() {
     if (!id) return;
     api.get(`/api/orders/${id}/`)
       .then(({ data }) => setOrder(data))
-      .catch(() => { toast.error("Order not found"); router.push("/orders"); })
+      .catch(() => { toast.error(t("order.not_found")); router.push("/orders"); })
       .finally(() => setLoading(false));
-  }, [id, router]);
+  }, [id, router, t]);
 
   const cancelOrder = async () => {
     setCancelling(true);
     try {
       await api.post(`/api/orders/${id}/cancel/`);
-      toast.success("Order cancelled");
+      toast.success(t("order.cancelled"));
       const { data } = await api.get(`/api/orders/${id}/`);
       setOrder(data);
     } catch (err: any) {
-      toast.error(err.response?.data?.detail || "Cannot cancel");
+      toast.error(err.response?.data?.detail || t("order.cancel_error"));
     } finally { setCancelling(false); }
   };
 
@@ -72,7 +74,7 @@ export default function OrderDetailPage() {
         </div>
         {canCancel && (
           <Button variant="danger" loading={cancelling} onClick={cancelOrder}>
-            Cancel Order
+            {t("order.cancel")}
           </Button>
         )}
       </div>
@@ -82,20 +84,20 @@ export default function OrderDetailPage() {
         <div className="lg:col-span-2 space-y-6">
           {/* Items */}
           <Card className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Items</h2>
+            <h2 className="text-lg font-semibold mb-4">{t("order.items")}</h2>
             <div className="divide-y divide-border">
               {order.items.map((item) => (
                 <div key={item.id} className="flex justify-between py-3 first:pt-0 last:pb-0">
                   <div>
                     <p className="font-medium text-text-primary">{item.menu_item_name}</p>
-                    <p className="text-sm text-text-secondary">Qty: {item.quantity} × ${parseFloat(item.unit_price).toFixed(2)}</p>
+                    <p className="text-sm text-text-secondary">{t("order.qty")} {item.quantity} × ${parseFloat(item.unit_price).toFixed(2)}</p>
                   </div>
                   <span className="font-semibold">${(item.quantity * parseFloat(item.unit_price)).toFixed(2)}</span>
                 </div>
               ))}
             </div>
             <div className="border-t border-border mt-4 pt-4 flex justify-between text-lg font-bold">
-              <span>Total</span>
+              <span>{t("order.total_label")}</span>
               <span className="text-primary-600">${order.total_price}</span>
             </div>
           </Card>
@@ -103,7 +105,7 @@ export default function OrderDetailPage() {
           {/* Status Timeline */}
           {order.status_logs.length > 0 && (
             <Card className="p-6">
-              <h2 className="text-lg font-semibold mb-4">Status History</h2>
+              <h2 className="text-lg font-semibold mb-4">{t("order.status_history")}</h2>
               <div className="relative">
                 {order.status_logs.map((log, idx) => (
                   <div key={log.id} className="flex gap-4 pb-6 last:pb-0 relative">
@@ -138,14 +140,14 @@ export default function OrderDetailPage() {
         {/* Right - Details */}
         <div className="space-y-4">
           <Card className="p-5">
-            <h3 className="font-semibold text-sm text-text-secondary uppercase tracking-wide mb-3">Payment</h3>
+            <h3 className="font-semibold text-sm text-text-secondary uppercase tracking-wide mb-3">{t("order.payment")}</h3>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-text-secondary">Method</span>
+                <span className="text-text-secondary">{t("order.method")}</span>
                 <span className="font-medium capitalize">{order.payment_method}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-text-secondary">Status</span>
+                <span className="text-text-secondary">{t("order.status")}</span>
                 <PaymentBadge status={order.payment_status} />
               </div>
             </div>
@@ -153,31 +155,31 @@ export default function OrderDetailPage() {
 
           {order.delivery_address && (
             <Card className="p-5">
-              <h3 className="font-semibold text-sm text-text-secondary uppercase tracking-wide mb-3">Delivery</h3>
+              <h3 className="font-semibold text-sm text-text-secondary uppercase tracking-wide mb-3">{t("order.delivery")}</h3>
               <p className="text-sm text-text-primary">{order.delivery_address}</p>
             </Card>
           )}
 
           <Card className="p-5">
-            <h3 className="font-semibold text-sm text-text-secondary uppercase tracking-wide mb-3">Summary</h3>
+            <h3 className="font-semibold text-sm text-text-secondary uppercase tracking-wide mb-3">{t("order.summary")}</h3>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-text-secondary">Items</span>
+                <span className="text-text-secondary">{t("order.items_label")}</span>
                 <span className="font-medium">{order.items.length}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-text-secondary">Delivery</span>
-                <span className="font-medium text-success">Free</span>
+                <span className="text-text-secondary">{t("order.delivery_label")}</span>
+                <span className="font-medium text-success">{t("order.free")}</span>
               </div>
               <div className="border-t border-border pt-2 flex justify-between font-bold text-base">
-                <span>Total</span>
+                <span>{t("order.total_label")}</span>
                 <span className="text-primary-600">${order.total_price}</span>
               </div>
             </div>
           </Card>
 
           <Button href="/menu" variant="outline" className="w-full">
-            Order Again
+            {t("order.order_again")}
           </Button>
         </div>
       </div>

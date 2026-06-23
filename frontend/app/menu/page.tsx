@@ -3,6 +3,7 @@ import { Suspense, useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import api from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
+import { useLanguage } from "@/lib/language";
 import toast from "react-hot-toast";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
@@ -30,6 +31,7 @@ interface Category {
 }
 
 function MenuPageContent() {
+  const { t } = useLanguage();
   const searchParams = useSearchParams();
   const isAuthed = useAuthStore((s) => s.isAuthenticated)();
 
@@ -63,20 +65,20 @@ function MenuPageContent() {
       if (maxPrice) params.max_price = maxPrice;
       const { data } = await api.get("/api/menu/items/", { params });
       setItems(data.results || data);
-    } catch { toast.error("Failed to load menu"); }
+    } catch { toast.error(t("menu.load_error")); }
     finally { setLoading(false); }
-  }, [search, activeCategory, minPrice, maxPrice]);
+  }, [search, activeCategory, minPrice, maxPrice, t]);
 
   useEffect(() => { fetchItems(); }, [fetchItems]);
 
   const addToCart = async (menuItemId: number, qty: number) => {
-    if (!isAuthed) { toast.error("Please login first"); return; }
+    if (!isAuthed) { toast.error(t("menu.login_first")); return; }
     try {
       await api.post("/api/orders/cart/add/", { menu_item: menuItemId, quantity: qty });
-      toast.success("Added to cart!");
+      toast.success(t("menu.added_to_cart"));
       setSelectedItem(null);
       setQuantity(1);
-    } catch { toast.error("Failed to add to cart"); }
+    } catch { toast.error(t("menu.add_failed")); }
   };
 
   return (
@@ -84,14 +86,14 @@ function MenuPageContent() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-text-primary">Our Menu</h1>
-          <p className="text-text-secondary mt-1">Browse our delicious selection</p>
+          <h1 className="text-3xl font-bold text-text-primary">{t("menu.title")}</h1>
+          <p className="text-text-secondary mt-1">{t("menu.subtitle")}</p>
         </div>
         <Button variant="outline" onClick={() => setShowFilters(!showFilters)}>
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
           </svg>
-          {showFilters ? "Hide Filters" : "Show Filters"}
+          {showFilters ? t("menu.hide_filters") : t("menu.show_filters")}
         </Button>
       </div>
 
@@ -101,14 +103,14 @@ function MenuPageContent() {
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <Input
-                placeholder="Search menu..."
+                placeholder={t("menu.search_placeholder")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
             <div className="flex gap-2">
-              <Input placeholder="Min $" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} />
-              <Input placeholder="Max $" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} />
+              <Input placeholder={t("menu.min_price")} value={minPrice} onChange={(e) => setMinPrice(e.target.value)} />
+              <Input placeholder={t("menu.max_price")} value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} />
             </div>
           </div>
           {categories.length > 0 && (
@@ -117,7 +119,7 @@ function MenuPageContent() {
                 onClick={() => setActiveCategory(null)}
                 className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${!activeCategory ? "bg-primary-600 text-white" : "bg-surface-hover text-text-secondary hover:bg-primary-100"}`}
               >
-                All
+                {t("menu.all")}
               </button>
               {categories.map((cat) => (
                 <button
@@ -135,7 +137,7 @@ function MenuPageContent() {
 
       {/* Items */}
       {loading ? <PageSkeleton /> : items.length === 0 ? (
-        <EmptyState icon="🍽️" title="No items found" description="Try adjusting your search or filters" />
+        <EmptyState icon="?" title={t("menu.empty_title")} description={t("menu.empty_desc")} />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {items.map((item) => (
@@ -144,7 +146,7 @@ function MenuPageContent() {
                 {item.image ? (
                   <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-4xl">🍕</span>
+                  <span className="text-4xl text-primary-300 font-bold">+</span>
                 )}
               </div>
               <div className="p-4">
@@ -154,7 +156,7 @@ function MenuPageContent() {
                 <div className="flex items-center justify-between mt-3">
                   <span className="text-lg font-bold text-primary-600">${item.price}</span>
                   <Button size="sm" onClick={() => addToCart(item.id, 1)}>
-                    + Add
+                    {t("menu.add")}
                   </Button>
                 </div>
               </div>
@@ -171,13 +173,13 @@ function MenuPageContent() {
               {selectedItem.image ? (
                 <img src={selectedItem.image} alt={selectedItem.name} className="w-full h-full object-cover rounded-xl" />
               ) : (
-                <span className="text-6xl">🍕</span>
+                <span className="text-6xl text-primary-300 font-bold">+</span>
               )}
             </div>
             <p className="text-xs text-primary-600 font-medium uppercase">{selectedItem.category_name}</p>
             <p className="text-text-secondary text-sm">{selectedItem.description}</p>
             <p className="text-sm text-text-muted">
-              {selectedItem.stock > 0 ? `${selectedItem.stock} in stock` : "Always available"}
+              {selectedItem.stock > 0 ? t("menu.in_stock", { count: selectedItem.stock }) : t("menu.always_available")}
             </p>
             <div className="flex items-center gap-4">
               <span className="text-2xl font-bold text-primary-600">${selectedItem.price}</span>
@@ -188,7 +190,7 @@ function MenuPageContent() {
               </div>
             </div>
             <Button className="w-full" size="lg" onClick={() => addToCart(selectedItem.id, quantity)}>
-              Add to Cart — ${(parseFloat(selectedItem.price) * quantity).toFixed(2)}
+              {t("menu.add_to_cart")} — ${(parseFloat(selectedItem.price) * quantity).toFixed(2)}
             </Button>
           </div>
         )}

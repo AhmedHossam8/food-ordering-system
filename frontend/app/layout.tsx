@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import { LanguageProvider } from "@/lib/language";
 import { Toaster } from "react-hot-toast";
 
 const geistSans = Geist({
@@ -26,20 +27,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html className={`${geistSans.variable} ${geistMono.variable}`}>
       <body className="min-h-screen flex flex-col bg-surface">
-        <Navbar />
-        <main className="flex-1">{children}</main>
-        <Footer />
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 3000,
-            style: { background: "#1c1917", color: "#fafaf9", borderRadius: "12px", fontSize: "14px" },
-            success: { iconTheme: { primary: "#16a34a", secondary: "#fff" } },
-            error: { iconTheme: { primary: "#dc2626", secondary: "#fff" } },
-          }}
-        />
+        <LanguageProvider>
+          <Navbar />
+          <main className="flex-1">{children}</main>
+          <Footer />
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 3000,
+              style: { background: "#1c1917", color: "#fafaf9", borderRadius: "12px", fontSize: "14px" },
+              success: { iconTheme: { primary: "#16a34a", secondary: "#fff" } },
+              error: { iconTheme: { primary: "#dc2626", secondary: "#fff" } },
+            }}
+          />
+        </LanguageProvider>
       </body>
     </html>
   );

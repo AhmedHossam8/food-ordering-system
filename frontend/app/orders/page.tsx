@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import api from "@/lib/api";
+import { useLanguage } from "@/lib/language";
 import Card from "@/components/ui/Card";
 import Spinner from "@/components/ui/Spinner";
 import { StatusBadge, PaymentBadge } from "@/components/ui/Badge";
@@ -14,6 +15,7 @@ interface Order {
 }
 
 export default function OrdersPage() {
+  const { t } = useLanguage();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("");
@@ -37,8 +39,8 @@ export default function OrdersPage() {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-text-primary">My Orders</h1>
-          <p className="text-text-secondary text-sm mt-1">Track and manage your orders</p>
+          <h1 className="text-3xl font-bold text-text-primary">{t("orders.title")}</h1>
+          <p className="text-text-secondary text-sm mt-1">{t("orders.subtitle")}</p>
         </div>
       </div>
 
@@ -54,7 +56,7 @@ export default function OrdersPage() {
                 : "bg-surface-hover text-text-secondary hover:bg-primary-100"
             }`}
           >
-            {f ? f.charAt(0).toUpperCase() + f.slice(1) : "All"}
+            {f ? t(`status.${f}`) : t("orders.all")}
           </button>
         ))}
       </div>
@@ -62,7 +64,7 @@ export default function OrdersPage() {
       {loading ? (
         <div className="flex justify-center py-16"><Spinner className="h-8 w-8" /></div>
       ) : orders.length === 0 ? (
-        <EmptyState icon="📋" title="No orders found" action={<Link href="/menu" className="text-primary-600 hover:underline">Browse Menu</Link>} />
+        <EmptyState icon="?" title={t("orders.empty")} action={<Link href="/menu" className="text-primary-600 hover:underline">{t("orders.browse")}</Link>} />
       ) : (
         <div className="space-y-3">
           {orders.map((order) => (

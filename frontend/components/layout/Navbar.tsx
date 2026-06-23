@@ -1,56 +1,61 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/lib/store";
+import { useLanguage } from "@/lib/language";
 import api from "@/lib/api";
 
 export default function Navbar() {
   const { user, logout, isAuthenticated } = useAuthStore();
-  const authed = isAuthenticated();
+  const { lang, toggleLang, t } = useLanguage();
+  const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
+  const authed = mounted && isAuthenticated();
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [isStaff, setIsStaff] = useState(false);
-  const [lang, setLang] = useState("en");
+  const isHome = pathname === "/";
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (authed) {
       api.get("/api/users/profile/").then(({ data }) => {
         setIsStaff(data.user?.is_staff || false);
       }).catch(() => {});
-      api.get("/api/users/language/").then(({ data }) => {
-        setLang(data.language);
-      }).catch(() => {});
     }
   }, [authed]);
-
-  const toggleLang = async () => {
-    const next = lang === "en" ? "ar" : "en";
-    try {
-      await api.put("/api/users/language/", { language: next });
-      setLang(next);
-    } catch {}
-  };
 
   return (
     <nav className="bg-white border-b border-border sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-8">
-            <Link href="/" className="flex items-center gap-2">
-              <span className="text-2xl">🍽️</span>
-              <span className="text-xl font-bold text-primary-600">FoodOrder</span>
-            </Link>
+            <span
+              className={`text-xl font-bold text-primary-600 ${authed ? "" : "cursor-pointer"}`}
+            >
+              {authed ? (
+                <span>FoodOrder</span>
+              ) : isHome ? (
+                <span onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>FoodOrder</span>
+              ) : (
+                <Link href="/">FoodOrder</Link>
+              )}
+            </span>
             <div className="hidden md:flex items-center gap-6">
               <Link href="/menu" className="text-text-secondary hover:text-primary-600 transition-colors font-medium">
-                {lang === "ar" ? "القائمة" : "Menu"}
+                {t("nav.menu")}
               </Link>
               {authed && (
                 <>
                   <Link href="/cart" className="text-text-secondary hover:text-primary-600 transition-colors font-medium">
-                    {lang === "ar" ? "السلة" : "Cart"}
+                    {t("nav.cart")}
                   </Link>
                   <Link href="/orders" className="text-text-secondary hover:text-primary-600 transition-colors font-medium">
-                    {lang === "ar" ? "الطلبات" : "Orders"}
+                    {t("nav.orders")}
                   </Link>
                 </>
               )}
@@ -59,7 +64,7 @@ export default function Navbar() {
 
           <div className="flex items-center gap-3">
             <button onClick={toggleLang} className="text-sm font-medium text-text-secondary hover:text-primary-600 transition-colors px-2 py-1 border border-border rounded">
-              {lang === "en" ? "عربي" : "EN"}
+              {t("nav.lang_btn")}
             </button>
 
             {authed ? (
@@ -81,18 +86,18 @@ export default function Navbar() {
                     <div className="fixed inset-0 z-10" onClick={() => setProfileOpen(false)} />
                     <div className="absolute right-0 mt-2 w-56 bg-white border border-border rounded-xl shadow-xl z-20 py-2">
                       <Link href="/profile" onClick={() => setProfileOpen(false)} className="block px-4 py-2 text-sm text-text-primary hover:bg-surface-hover">
-                        {lang === "ar" ? "الملف الشخصي" : "Profile"}
+                        {t("nav.profile")}
                       </Link>
                       <Link href="/orders" onClick={() => setProfileOpen(false)} className="block px-4 py-2 text-sm text-text-primary hover:bg-surface-hover">
-                        {lang === "ar" ? "طلباتي" : "My Orders"}
+                        {t("nav.my_orders")}
                       </Link>
                       {isStaff && (
                         <Link href="/admin" onClick={() => setProfileOpen(false)} className="block px-4 py-2 text-sm text-text-primary hover:bg-surface-hover border-t border-border">
-                          {lang === "ar" ? "لوحة التحكم" : "Admin Panel"}
+                          {t("nav.admin_panel")}
                         </Link>
                       )}
                       <button onClick={() => { setProfileOpen(false); logout(); }} className="w-full text-left px-4 py-2 text-sm text-error hover:bg-red-50 border-t border-border">
-                        {lang === "ar" ? "تسجيل الخروج" : "Logout"}
+                        {t("nav.logout")}
                       </button>
                     </div>
                   </>
@@ -101,10 +106,10 @@ export default function Navbar() {
             ) : (
               <div className="flex items-center gap-2">
                 <Link href="/login" className="text-sm font-medium text-text-secondary hover:text-primary-600 px-3 py-1.5 transition-colors">
-                  {lang === "ar" ? "تسجيل الدخول" : "Login"}
+                  {t("nav.login")}
                 </Link>
                 <Link href="/register" className="text-sm font-medium bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors">
-                  {lang === "ar" ? "إنشاء حساب" : "Sign Up"}
+                  {t("nav.signup")}
                 </Link>
               </div>
             )}
@@ -123,11 +128,17 @@ export default function Navbar() {
 
         {menuOpen && (
           <div className="md:hidden pb-4 space-y-2">
-            <Link href="/menu" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-text-secondary hover:bg-surface-hover rounded-lg">Menu</Link>
+            <Link href="/menu" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-text-secondary hover:bg-surface-hover rounded-lg">
+              {t("nav.menu")}
+            </Link>
             {authed && (
               <>
-                <Link href="/cart" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-text-secondary hover:bg-surface-hover rounded-lg">Cart</Link>
-                <Link href="/orders" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-text-secondary hover:bg-surface-hover rounded-lg">Orders</Link>
+                <Link href="/cart" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-text-secondary hover:bg-surface-hover rounded-lg">
+                  {t("nav.cart")}
+                </Link>
+                <Link href="/orders" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-text-secondary hover:bg-surface-hover rounded-lg">
+                  {t("nav.orders")}
+                </Link>
               </>
             )}
           </div>

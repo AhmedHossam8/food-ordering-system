@@ -1,50 +1,45 @@
 "use client";
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
+import { useLanguage } from "@/lib/language";
 import toast from "react-hot-toast";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Card from "@/components/ui/Card";
 import Spinner from "@/components/ui/Spinner";
-import Badge from "@/components/ui/Badge";
 
 export default function ProfilePage() {
+  const { lang, setLang, t } = useLanguage();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
-  const [lang, setLang] = useState("en");
 
   useEffect(() => {
-    Promise.all([
-      api.get("/api/users/profile/"),
-      api.get("/api/users/language/"),
-    ]).then(([profileRes, langRes]) => {
-      const p = profileRes.data;
-      setProfile(p);
-      setPhone(p.phone || "");
-      setAddress(p.address || "");
-      setLang(langRes.data.language);
-    }).catch(() => toast.error("Failed to load profile"))
+    api.get("/api/users/profile/").then(({ data }) => {
+      setProfile(data);
+      setPhone(data.phone || "");
+      setAddress(data.address || "");
+    }).catch(() => toast.error(t("profile.load_error")))
     .finally(() => setLoading(false));
-  }, []);
+  }, [t]);
 
   const saveProfile = async () => {
     setSaving(true);
     try {
       await api.put("/api/users/profile/", { phone, address });
-      toast.success("Profile updated");
-    } catch { toast.error("Failed to update"); }
+      toast.success(t("profile.saved"));
+    } catch { toast.error(t("profile.save_error")); }
     finally { setSaving(false); }
   };
 
-  const updateLang = async (language: string) => {
+  const updateLangHandler = async (language: string) => {
+    setLang(language);
     try {
       await api.put("/api/users/language/", { language });
-      setLang(language);
-      toast.success("Language updated");
-    } catch { toast.error("Failed to update language"); }
+      toast.success(t("profile.lang_updated"));
+    } catch { toast.error(t("profile.lang_error")); }
   };
 
   if (loading) return <div className="flex justify-center py-16"><Spinner className="h-8 w-8" /></div>;
@@ -63,28 +58,28 @@ export default function ProfilePage() {
 
       <div className="space-y-6">
         <Card className="p-6">
-          <h2 className="text-lg font-semibold mb-4">Profile Details</h2>
+          <h2 className="text-lg font-semibold mb-4">{t("profile.details")}</h2>
           <div className="space-y-4">
-            <Input label="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
-            <Input label="Default Address" multiline rows={2} value={address} onChange={(e) => setAddress(e.target.value)} />
-            <Button loading={saving} onClick={saveProfile}>Save Changes</Button>
+            <Input label={t("profile.phone")} value={phone} onChange={(e) => setPhone(e.target.value)} />
+            <Input label={t("profile.address")} multiline rows={2} value={address} onChange={(e) => setAddress(e.target.value)} />
+            <Button loading={saving} onClick={saveProfile}>{t("profile.save")}</Button>
           </div>
         </Card>
 
         <Card className="p-6">
-          <h2 className="text-lg font-semibold mb-4">Language Preference</h2>
+          <h2 className="text-lg font-semibold mb-4">{t("profile.language")}</h2>
           <div className="flex gap-3">
             <button
-              onClick={() => updateLang("en")}
+              onClick={() => updateLangHandler("en")}
               className={`flex-1 px-4 py-3 rounded-xl border text-center transition-all ${lang === "en" ? "border-primary-500 bg-primary-50 text-primary-700 font-medium" : "border-border hover:bg-surface-hover"}`}
             >
-              English
+              {t("profile.english")}
             </button>
             <button
-              onClick={() => updateLang("ar")}
+              onClick={() => updateLangHandler("ar")}
               className={`flex-1 px-4 py-3 rounded-xl border text-center transition-all ${lang === "ar" ? "border-primary-500 bg-primary-50 text-primary-700 font-medium" : "border-border hover:bg-surface-hover"}`}
             >
-              العربية
+              {t("profile.arabic")}
             </button>
           </div>
         </Card>
