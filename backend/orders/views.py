@@ -1,5 +1,4 @@
 import stripe
-import json
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
@@ -15,6 +14,7 @@ from .serializers import (
     UpdateCartItemSerializer,
 )
 from .payment import create_payment_intent
+from .serializers import OrderStatusUpdateSerializer
 
 
 class CartView(generics.RetrieveAPIView):
@@ -177,10 +177,13 @@ def stripe_webhook(request):
         intent = event["data"]["object"]
         order_id = intent["metadata"].get("order_id")
         if order_id:
-            Order.objects.filter(id=order_id).update(
-                payment_status=Order.PaymentStatus.PAID,
-                status=Order.Status.CONFIRMED,
-            )
+            order = Order.objects.get(id=order_id)
+            order.payment_status = Order.PaymentStatus.PAID
+            order.save(update_fields=["payment_status", "updated_at"])
+            try:
+                order.set_status(Order.Status.CONFIRMED, note="Payment confirmed")
+            except ValueError:
+                pass
 
     elif event["type"] == "payment_intent.payment_failed":
         intent = event["data"]["object"]
@@ -191,3 +194,39 @@ def stripe_webhook(request):
             )
 
     return HttpResponse(status=200)
+
+
+class IsStaffUser(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user and request.user.is_staff
+
+
+class OrderStatusUpdateView(generics.UpdateAPIView):
+    queryset = Order.objects.all()
+    serializer_class = OrderStatusUpdateSerializer
+    permission_classes = [permissions.IsAuthenticated, IsStaffUser]
+
+    def update(self, request, *args, **kwargs):
+        try:
+            order = self.get_object()
+        except Order.DoesNotExist:
+            return Response(
+                {"detail": "Order not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        new_status = serializer.validated_data["status"]
+        note = serializer.validated_data.get("note", "")
+
+        try:
+            order.set_status(new_status, user=request.user, note=note)
+        except ValueError as e:
+            return Response(
+                {"detail": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(OrderSerializer(order).data)

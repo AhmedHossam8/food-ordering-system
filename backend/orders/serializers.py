@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from menu.models import MenuItem
-from .models import Cart, CartItem, Order, OrderItem
+from .models import Cart, CartItem, Order, OrderItem, OrderStatusLog
 
 
 class CartItemSerializer(serializers.ModelSerializer):
@@ -64,6 +64,19 @@ class UpdateCartItemSerializer(serializers.ModelSerializer):
         fields = ["quantity"]
 
 
+class OrderStatusLogSerializer(serializers.ModelSerializer):
+    changed_by_name = serializers.CharField(
+        source="changed_by.username", read_only=True, default=None
+    )
+
+    class Meta:
+        model = OrderStatusLog
+        fields = [
+            "id", "from_status", "to_status",
+            "changed_by", "changed_by_name", "note", "created_at",
+        ]
+
+
 class OrderItemSerializer(serializers.ModelSerializer):
     menu_item_name = serializers.CharField(source="menu_item.name", read_only=True)
 
@@ -77,18 +90,25 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
+    status_logs = OrderStatusLogSerializer(many=True, read_only=True)
 
     class Meta:
         model = Order
         fields = [
             "id", "user", "status", "payment_method",
             "payment_status", "transaction_id", "total_price",
-            "delivery_address", "items", "created_at", "updated_at",
+            "delivery_address", "items", "status_logs",
+            "created_at", "updated_at",
         ]
         read_only_fields = [
             "user", "status", "payment_status",
             "total_price", "transaction_id",
         ]
+
+
+class OrderStatusUpdateSerializer(serializers.Serializer):
+    status = serializers.ChoiceField(choices=Order.Status.choices)
+    note = serializers.CharField(required=False, allow_blank=True, default="")
 
 
 class CreateOrderSerializer(serializers.ModelSerializer):

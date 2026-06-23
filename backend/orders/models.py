@@ -41,6 +41,15 @@ class Order(models.Model):
         DELIVERED = "delivered", "Delivered"
         CANCELLED = "cancelled", "Cancelled"
 
+    VALID_TRANSITIONS = {
+        Status.PENDING: [Status.CONFIRMED, Status.CANCELLED],
+        Status.CONFIRMED: [Status.PREPARING, Status.CANCELLED],
+        Status.PREPARING: [Status.READY, Status.CANCELLED],
+        Status.READY: [Status.DELIVERED],
+        Status.DELIVERED: [],
+        Status.CANCELLED: [],
+    }
+
     class PaymentMethod(models.TextChoices):
         ONLINE = "online", "Online Payment"
         COD = "cod", "Cash on Delivery"
@@ -83,6 +92,29 @@ class Order(models.Model):
     def __str__(self):
         return f"Order #{self.id} ({self.status})"
 
+    def set_status(self, new_status, user=None, note=""):
+        if new_status == self.status:
+            return
+
+        allowed = self.VALID_TRANSITIONS.get(self.status, [])
+        if new_status not in allowed:
+            raise ValueError(
+                f"Cannot transition from '{self.status}' to '{new_status}'. "
+                f"Allowed transitions: {[s for s in allowed]}"
+            )
+
+        old_status = self.status
+        self.status = new_status
+        self.save(update_fields=["status", "updated_at"])
+
+        OrderStatusLog.objects.create(
+            order=self,
+            from_status=old_status,
+            to_status=new_status,
+            changed_by=user,
+            note=note,
+        )
+
 
 class OrderItem(models.Model):
     order = models.ForeignKey(
@@ -99,3 +131,25 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"{self.quantity}x {self.menu_item.name}"
+
+
+class OrderStatusLog(models.Model):
+    order = models.ForeignKey(
+        Order, on_delete=models.CASCADE, related_name="status_logs"
+    )
+    from_status = models.CharField(max_length=20)
+    to_status = models.CharField(max_length=20)
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    note = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at"]
+
+    def __str__(self):
+        return f"Order #{self.order.id}: {self.from_status} -> {self.to_status}"
