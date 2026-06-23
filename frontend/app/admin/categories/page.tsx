@@ -10,7 +10,7 @@ import Spinner from "@/components/ui/Spinner";
 import Modal from "@/components/ui/Modal";
 
 interface Category {
-  id: number; name: string; name_ar: string;
+  id: number; name: string; name_ar: string; name_localized?: string;
   description: string; description_ar: string;
   display_order: number;
 }
@@ -116,7 +116,7 @@ export default function AdminCategoriesPage() {
               {categories.map((cat) => (
                 <tr key={cat.id} className="hover:bg-surface-hover transition-colors">
                   <td className="py-3 px-4 font-medium text-text-secondary">{cat.id}</td>
-                  <td className="py-3 px-4 font-medium">{cat.name}</td>
+                  <td className="py-3 px-4 font-medium">{cat.name_localized || cat.name}</td>
                   <td className="py-3 px-4 text-text-secondary">{cat.name_ar || "\u2014"}</td>
                   <td className="py-3 px-4 text-center text-text-secondary">{cat.display_order}</td>
                   <td className="py-3 px-4">
