@@ -33,6 +33,7 @@ def api_root(request):
             "menu": "/api/menu/",
             "orders": "/api/orders/",
             "payment": "/api/orders/webhook/stripe/",
+            "admin-api": "/api/admin/",
         },
     })
 
@@ -41,6 +42,7 @@ urlpatterns = [
     path("api/health/", health_check, name="health-check"),
     path("admin/", admin.site.urls),
 
+    path("api/admin/", include("admin_dashboard.urls")),
     path("api/users/", include("users.urls")),
     path("api/menu/", include("menu.urls")),
     path("api/orders/", include("orders.urls")),

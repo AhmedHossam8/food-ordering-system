@@ -36,7 +36,41 @@ class OrderAdmin(admin.ModelAdmin):
     ]
     list_filter = ["status", "payment_method", "payment_status"]
     search_fields = ["user__username", "delivery_address", "transaction_id"]
+    date_hierarchy = "created_at"
     inlines = [OrderItemInline, OrderStatusLogInline]
+    actions = ["export_csv"]
+
+    @admin.action(description="Export selected orders as CSV")
+    def export_csv(self, request, queryset):
+        import csv
+
+        from django.http import HttpResponse
+
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = "attachment; filename=orders.csv"
+
+        writer = csv.writer(response)
+        writer.writerow([
+            "Order ID", "User", "Status", "Payment Method",
+            "Payment Status", "Total Price", "Delivery Address",
+            "Created At",
+        ])
+
+        for order in queryset.select_related("user"):
+            writer.writerow([
+                order.id,
+                order.user.username if order.user else "Deleted",
+                order.status,
+                order.payment_method,
+                order.payment_status,
+                order.total_price,
+                order.delivery_address,
+                order.created_at.isoformat(),
+            ])
+
+        return response
+
+    export_csv.short_description = "Export selected orders as CSV"
 
 
 @admin.register(OrderItem)
