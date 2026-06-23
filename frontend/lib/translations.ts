@@ -131,6 +131,10 @@ const en: Record<string, string> = {
   "checkout.enter_address": "Please enter a delivery address",
   "checkout.success": "Order placed!",
   "checkout.error": "Checkout failed",
+  "checkout.use_saved": "Use saved address?",
+  "checkout.saved_hint": "We found a saved address in your profile.",
+  "checkout.use_this": "Use this address",
+  "checkout.edit": "Edit",
 
   /* Orders List */
   "orders.title": "My Orders",
@@ -454,6 +458,10 @@ const ar: Record<string, string> = {
   "checkout.enter_address": "يرجى إدخال عنوان التوصيل",
   "checkout.success": "تم تقديم الطلب!",
   "checkout.error": "فشل إتمام الطلب",
+  "checkout.use_saved": "استخدام العنوان المحفوظ؟",
+  "checkout.saved_hint": "وجدنا عنواناً محفوظاً في ملفك الشخصي.",
+  "checkout.use_this": "استخدم هذا العنوان",
+  "checkout.edit": "تعديل",
 
   /* Orders List */
   "orders.title": "طلباتي",
