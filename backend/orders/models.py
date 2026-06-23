@@ -8,8 +8,12 @@ class Cart(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
+        null=True, blank=True,
         related_name="carts",
         verbose_name=_("user"),
+    )
+    session_key = models.CharField(
+        _("session key"), max_length=40, blank=True, default="",
     )
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     updated_at = models.DateTimeField(_("updated at"), auto_now=True)

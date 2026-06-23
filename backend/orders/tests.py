@@ -65,10 +65,11 @@ class CartTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(CartItem.objects.count(), 0)
 
-    def test_cart_requires_auth(self):
+    def test_cart_allows_guest(self):
         self.client.force_authenticate(user=None)
         response = self.client.get("/api/orders/cart/")
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("items", response.data)
 
 
 class OrderTests(APITestCase):
@@ -117,14 +118,14 @@ class OrderTests(APITestCase):
         )
         response = self.client.get("/api/orders/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data["count"], 1)
 
     def test_list_orders_excludes_others(self):
         other = User.objects.create_user(username="other", password="Other123")
         Order.objects.create(user=other, total_price=10)
         response = self.client.get("/api/orders/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 0)
+        self.assertEqual(response.data["count"], 0)
 
     def test_order_detail(self):
         order = Order.objects.create(

@@ -1,7 +1,13 @@
+from django.contrib.auth.forms import SetPasswordForm
+from django.contrib.auth.models import User
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.core.mail import send_mail
+from django.conf import settings
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.translation import activate, get_language
 from rest_framework import generics, permissions, status
 from rest_framework.views import APIView
-from django.contrib.auth.models import User
 from rest_framework.response import Response
 from .models import Profile
 from .serializers import ProfileSerializer, RegisterSerializer
@@ -31,6 +37,64 @@ class ProfileView(generics.RetrieveUpdateAPIView):
             user=self.request.user
         )
         return profile
+
+
+class PasswordResetRequestView(APIView):
+    def post(self, request):
+        email = request.data.get("email", "")
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response(
+                {"detail": "If this email exists, a reset link has been sent."},
+                status=status.HTTP_200_OK,
+            )
+
+        token = PasswordResetTokenGenerator().make_token(user)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+
+        reset_url = f"{request.build_absolute_uri('/api/users/password-reset/confirm/')}{uid}/{token}/"
+
+        send_mail(
+            subject="Password Reset Request",
+            message=f"Click the link to reset your password: {reset_url}",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[email],
+            fail_silently=True,
+        )
+
+        return Response(
+            {"detail": "If this email exists, a reset link has been sent."},
+            status=status.HTTP_200_OK,
+        )
+
+
+class PasswordResetConfirmView(APIView):
+    def post(self, request, uidb64, token):
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+        except (User.DoesNotExist, ValueError, TypeError):
+            return Response(
+                {"detail": "Invalid reset link."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not PasswordResetTokenGenerator().check_token(user, token):
+            return Response(
+                {"detail": "Invalid or expired reset link."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        form = SetPasswordForm(user, request.data)
+        if not form.is_valid():
+            return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        form.save()
+        return Response(
+            {"detail": "Password has been reset successfully."},
+            status=status.HTTP_200_OK,
+        )
 
 
 class LanguageView(APIView):

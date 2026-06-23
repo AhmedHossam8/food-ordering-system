@@ -15,14 +15,14 @@ class CategoryTests(APITestCase):
     def test_list_categories(self):
         response = self.client.get("/api/menu/categories/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]["name"], "Main Course")
+        self.assertEqual(response.data["count"], 1)
+        self.assertEqual(response.data["results"][0]["name"], "Main Course")
 
     def test_list_categories_includes_localized(self):
         response = self.client.get("/api/menu/categories/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn("name_localized", response.data[0])
-        self.assertIn("description_localized", response.data[0])
+        self.assertIn("name_localized", response.data["results"][0])
+        self.assertIn("description_localized", response.data["results"][0])
 
     def test_create_category_requires_staff(self):
         user = User.objects.create_user(username="user", password="User123")
@@ -61,7 +61,7 @@ class MenuItemTests(APITestCase):
     def test_list_items(self):
         response = self.client.get("/api/menu/items/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data["count"], 1)
 
     def test_filter_by_category(self):
         other = Category.objects.create(name="Drinks", display_order=2)
@@ -70,8 +70,8 @@ class MenuItemTests(APITestCase):
             f"/api/menu/items/?category={self.category.id}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]["name"], "Burger")
+        self.assertEqual(response.data["count"], 1)
+        self.assertEqual(response.data["results"][0]["name"], "Burger")
 
     def test_filter_available(self):
         MenuItem.objects.create(
@@ -79,7 +79,7 @@ class MenuItemTests(APITestCase):
         )
         response = self.client.get("/api/menu/items/?available=true")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data["count"], 1)
 
     def test_create_item_as_staff(self):
         staff = User.objects.create_user(
@@ -107,5 +107,5 @@ class MenuItemTests(APITestCase):
 
     def test_item_includes_localized_fields(self):
         response = self.client.get("/api/menu/items/")
-        self.assertIn("name_localized", response.data[0])
-        self.assertIn("description_localized", response.data[0])
+        self.assertIn("name_localized", response.data["results"][0])
+        self.assertIn("description_localized", response.data["results"][0])

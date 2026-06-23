@@ -1,10 +1,14 @@
+import logging
 import stripe
 from django.conf import settings
+from django.core.mail import send_mail
+from django.db import models
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 from rest_framework import generics, permissions, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
+from menu.models import MenuItem
 from .models import Cart, CartItem, Order, OrderItem
 from .serializers import (
     AddToCartSerializer,
@@ -16,38 +20,48 @@ from .serializers import (
 from .payment import create_payment_intent
 from .serializers import OrderStatusUpdateSerializer
 
+logger = logging.getLogger(__name__)
+
+
+def get_cart(request):
+    if request.user.is_authenticated:
+        cart, _ = Cart.objects.get_or_create(user=request.user)
+    else:
+        if not request.session.session_key:
+            request.session.save()
+        cart, _ = Cart.objects.get_or_create(
+            session_key=request.session.session_key,
+            defaults={"user": None},
+        )
+    return cart
+
 
 class CartView(generics.RetrieveAPIView):
     serializer_class = CartSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
-        cart, _ = Cart.objects.get_or_create(user=self.request.user)
-        return cart
+        return get_cart(self.request)
 
 
 class AddToCartView(generics.CreateAPIView):
     serializer_class = AddToCartSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
-        cart, _ = Cart.objects.get_or_create(user=self.request.user)
-        serializer.save(cart=cart)
+        serializer.save(cart=get_cart(self.request))
 
 
 class UpdateCartItemView(generics.UpdateAPIView):
     serializer_class = UpdateCartItemSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return CartItem.objects.filter(cart__user=self.request.user)
+        cart = get_cart(self.request)
+        return CartItem.objects.filter(cart=cart)
 
 
 class RemoveCartItemView(generics.DestroyAPIView):
-    permission_classes = [permissions.IsAuthenticated]
-
     def get_queryset(self):
-        return CartItem.objects.filter(cart__user=self.request.user)
+        cart = get_cart(self.request)
+        return CartItem.objects.filter(cart=cart)
 
 
 class CreateOrderView(generics.CreateAPIView):
@@ -63,12 +77,22 @@ class CreateOrderView(generics.CreateAPIView):
         order = serializer.save(user=user)
 
         for cart_item in cart.items.all():
+            item = cart_item.menu_item
+            if item.stock > 0 and cart_item.quantity > item.stock:
+                raise ValidationError(
+                    f"Insufficient stock for '{item.name}'. "
+                    f"Available: {item.stock}, requested: {cart_item.quantity}."
+                )
             OrderItem.objects.create(
                 order=order,
-                menu_item=cart_item.menu_item,
+                menu_item=item,
                 quantity=cart_item.quantity,
-                unit_price=cart_item.menu_item.price,
+                unit_price=item.price,
             )
+            if item.stock > 0:
+                MenuItem.objects.filter(pk=item.pk).update(
+                    stock=models.F("stock") - cart_item.quantity
+                )
 
         total = sum(
             item.unit_price * item.quantity
@@ -78,6 +102,23 @@ class CreateOrderView(generics.CreateAPIView):
         order.save()
 
         cart.items.all().delete()
+
+        try:
+            send_mail(
+                subject=f"Order #{order.id} Confirmed",
+                message=(
+                    f"Thank you for your order!\n\n"
+                    f"Order #{order.id}\n"
+                    f"Total: ${total}\n"
+                    f"Status: {order.status}\n\n"
+                    f"We will notify you when your order status changes."
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email] if user.email else [],
+                fail_silently=True,
+            )
+        except Exception as e:
+            logger.warning("Failed to send order confirmation email: %s", e)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -261,5 +302,11 @@ class CancelOrderView(generics.CreateAPIView):
                 {"detail": str(e)},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+        for order_item in order.items.all():
+            if order_item.menu_item.stock > 0:
+                MenuItem.objects.filter(pk=order_item.menu_item.pk).update(
+                    stock=models.F("stock") + order_item.quantity
+                )
 
         return Response(OrderSerializer(order).data)

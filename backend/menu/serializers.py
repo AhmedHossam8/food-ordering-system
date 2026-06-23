@@ -39,5 +39,6 @@ class MenuItemSerializer(serializers.ModelSerializer):
             "name", "name_ar", "name_localized",
             "description", "description_ar", "description_localized",
             "price", "image",
-            "is_available", "created_at", "updated_at",
+            "is_available", "stock",
+            "created_at", "updated_at",
         ]

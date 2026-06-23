@@ -1,0 +1,26 @@
+WARNING 2026-06-23 15:07:48,563 log Unauthorized: /api/users/login/
+WARNING 2026-06-23 15:07:48,565 log Unauthorized: /api/users/profile/
+WARNING 2026-06-23 15:07:50,466 log Bad Request: /api/users/register/
+WARNING 2026-06-23 15:07:52,427 log Bad Request: /api/users/language/
+WARNING 2026-06-23 15:07:54,397 log Forbidden: /api/menu/categories/
+WARNING 2026-06-23 15:07:55,025 log Forbidden: /api/menu/categories/1/
+WARNING 2026-06-23 15:07:55,654 log Forbidden: /api/menu/items/
+WARNING 2026-06-23 15:08:01,446 log Bad Request: /api/orders/1/cancel/
+WARNING 2026-06-23 15:08:02,736 log Not Found: /api/orders/1/cancel/
+WARNING 2026-06-23 15:08:04,671 log Bad Request: /api/orders/1/status/
+WARNING 2026-06-23 15:08:05,921 log Forbidden: /api/orders/1/status/
+WARNING 2026-06-23 15:08:09,100 log Bad Request: /api/orders/create/
+WARNING 2026-06-23 15:08:14,138 log Not Found: /api/orders/1/
+WARNING 2026-06-23 15:08:40,408 log Unauthorized: /api/users/login/
+WARNING 2026-06-23 15:08:40,410 log Unauthorized: /api/users/profile/
+WARNING 2026-06-23 15:08:42,303 log Bad Request: /api/users/register/
+WARNING 2026-06-23 15:08:44,241 log Bad Request: /api/users/language/
+WARNING 2026-06-23 15:08:46,155 log Forbidden: /api/menu/categories/
+WARNING 2026-06-23 15:08:46,777 log Forbidden: /api/menu/categories/1/
+WARNING 2026-06-23 15:08:47,420 log Forbidden: /api/menu/items/
+WARNING 2026-06-23 15:08:53,131 log Bad Request: /api/orders/1/cancel/
+WARNING 2026-06-23 15:08:54,376 log Not Found: /api/orders/1/cancel/
+WARNING 2026-06-23 15:08:56,258 log Bad Request: /api/orders/1/status/
+WARNING 2026-06-23 15:08:57,502 log Forbidden: /api/orders/1/status/
+WARNING 2026-06-23 15:09:00,654 log Bad Request: /api/orders/create/
+WARNING 2026-06-23 15:09:05,792 log Not Found: /api/orders/1/
