@@ -10,18 +10,31 @@ import Input from "@/components/ui/Input";
 import Card from "@/components/ui/Card";
 import Spinner from "@/components/ui/Spinner";
 
+interface SavedAddr {
+  city: string; street: string; building: string; floor: string; flat: string;
+}
+
 export default function CheckoutPage() {
   const { t, lang } = useLanguage();
   const router = useRouter();
   const [items, setItems] = useState<any[]>([]);
   const [total, setTotal] = useState("0.00");
   const [paymentMethod, setPaymentMethod] = useState<"cod" | "online">("cod");
-  const [address, setAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [street, setStreet] = useState("");
+  const [building, setBuilding] = useState("");
+  const [floor, setFloor] = useState("");
+  const [flat, setFlat] = useState("");
   const [addressError, setAddressError] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [savedAddress, setSavedAddress] = useState<string | null>(null);
+  const [savedAddr, setSavedAddr] = useState<SavedAddr | null>(null);
   const [showAddressInput, setShowAddressInput] = useState(false);
+
+  const combineAddress = () => {
+    const parts = [city, street, building, floor, flat].filter(Boolean);
+    return parts.join(", ");
+  };
 
   useEffect(() => {
     Promise.all([
@@ -31,10 +44,15 @@ export default function CheckoutPage() {
       .then(([cartRes, profileRes]) => {
         setItems(cartRes.data.items || []);
         setTotal(cartRes.data.total || "0.00");
-        const addr = profileRes.data.address || "";
-        setSavedAddress(addr);
-        if (addr) {
-          setAddress(addr);
+        const p = profileRes.data;
+        if (p.address_city || p.address_street || p.address_building || p.address_floor || p.address_flat) {
+          const addr = { city: p.address_city || "", street: p.address_street || "", building: p.address_building || "", floor: p.address_floor || "", flat: p.address_flat || "" };
+          setSavedAddr(addr);
+          setCity(addr.city);
+          setStreet(addr.street);
+          setBuilding(addr.building);
+          setFloor(addr.floor);
+          setFlat(addr.flat);
         }
       })
       .catch(() => toast.error(t("checkout.error")))
@@ -42,12 +60,13 @@ export default function CheckoutPage() {
   }, [t]);
 
   const placeOrder = async () => {
-    if (!address.trim()) { setAddressError(t("checkout.enter_address")); return; }
+    const delivery_address = combineAddress();
+    if (!delivery_address.trim()) { setAddressError(t("checkout.enter_address")); return; }
     setSubmitting(true);
     try {
       const { data } = await api.post("/api/orders/create/", {
         payment_method: paymentMethod,
-        delivery_address: address,
+        delivery_address,
       });
       toast.success(t("checkout.success"));
       router.push(`/orders/${data.id}`);
@@ -59,12 +78,18 @@ export default function CheckoutPage() {
   };
 
   const useSaved = () => {
-    if (savedAddress) {
-      setAddress(savedAddress);
+    if (savedAddr) {
+      setCity(savedAddr.city);
+      setStreet(savedAddr.street);
+      setBuilding(savedAddr.building);
+      setFloor(savedAddr.floor);
+      setFlat(savedAddr.flat);
       setShowAddressInput(false);
       setAddressError("");
     }
   };
+
+  const fieldsFilled = city || street || building || floor || flat;
 
   if (loading) return <div className="flex justify-center py-16"><Spinner className="h-8 w-8" /></div>;
 
@@ -85,7 +110,7 @@ export default function CheckoutPage() {
               {t("checkout.address_title")} <span className="text-error">*</span>
             </h2>
 
-            {savedAddress && !showAddressInput ? (
+            {savedAddr && !showAddressInput ? (
               <div className="space-y-3">
                 <div className="bg-primary-50 border border-primary-200 rounded-xl p-4">
                   <div className="flex items-start gap-2">
@@ -95,7 +120,9 @@ export default function CheckoutPage() {
                     </svg>
                     <div className="flex-1">
                       <p className="text-sm font-medium text-text-primary">{t("checkout.use_saved")}</p>
-                      <p className="text-sm text-text-secondary mt-1">{savedAddress}</p>
+                      <p className="text-sm text-text-secondary mt-1">
+                        {[savedAddr.city, savedAddr.street, savedAddr.building, savedAddr.floor, savedAddr.flat].filter(Boolean).join(", ")}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -110,36 +137,55 @@ export default function CheckoutPage() {
               </div>
             ) : (
               <div className="space-y-3">
-                {savedAddress && showAddressInput && (
+                {savedAddr && showAddressInput && (
                   <div className="flex items-center gap-2 text-sm text-text-secondary mb-2">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <span>{t("checkout.saved_hint")}</span>
-                    <button onClick={() => { setAddress(savedAddress); setShowAddressInput(false); setAddressError(""); }} className="text-primary-600 hover:text-primary-700 font-medium underline ml-auto">
+                    <button onClick={useSaved} className="text-primary-600 hover:text-primary-700 font-medium underline ml-auto">
                       {t("checkout.use_this")}
                     </button>
                   </div>
                 )}
-                {!savedAddress && (
+                {!savedAddr && (
                   <p className="text-xs text-text-muted mb-1">
                     <span className="text-error">*</span> {t("checkout.required_field")}
                   </p>
                 )}
-                {savedAddress && showAddressInput && (
+                {savedAddr && showAddressInput && (
                   <p className="text-xs text-text-muted mb-1">
                     <span className="text-error">*</span> {t("checkout.required_field")}
                   </p>
                 )}
-                <Input
-                  multiline
-                  rows={3}
-                  placeholder={t("checkout.address_placeholder")}
-                  value={address}
-                  onChange={(e) => { setAddress(e.target.value); setAddressError(""); }}
-                  required
-                  error={addressError}
-                />
+                <div className="grid grid-cols-2 gap-3">
+                  <Input
+                    placeholder={t("checkout.address_city")}
+                    value={city}
+                    onChange={(e) => { setCity(e.target.value); setAddressError(""); }}
+                  />
+                  <Input
+                    placeholder={t("checkout.address_street")}
+                    value={street}
+                    onChange={(e) => { setStreet(e.target.value); setAddressError(""); }}
+                  />
+                  <Input
+                    placeholder={t("checkout.address_building")}
+                    value={building}
+                    onChange={(e) => { setBuilding(e.target.value); setAddressError(""); }}
+                  />
+                  <Input
+                    placeholder={t("checkout.address_floor")}
+                    value={floor}
+                    onChange={(e) => { setFloor(e.target.value); setAddressError(""); }}
+                  />
+                  <Input
+                    placeholder={t("checkout.address_flat")}
+                    value={flat}
+                    onChange={(e) => { setFlat(e.target.value); setAddressError(""); }}
+                  />
+                </div>
+                {addressError && <p className="text-xs text-error mt-1">{addressError}</p>}
               </div>
             )}
           </Card>

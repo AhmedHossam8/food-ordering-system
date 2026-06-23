@@ -18,13 +18,21 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("");
+  const [addressCity, setAddressCity] = useState("");
+  const [addressStreet, setAddressStreet] = useState("");
+  const [addressBuilding, setAddressBuilding] = useState("");
+  const [addressFloor, setAddressFloor] = useState("");
+  const [addressFlat, setAddressFlat] = useState("");
 
   useEffect(() => {
     api.get("/api/users/profile/").then(({ data }) => {
       setProfile(data);
       setPhone(data.phone || "");
-      setAddress(data.address || "");
+      setAddressCity(data.address_city || "");
+      setAddressStreet(data.address_street || "");
+      setAddressBuilding(data.address_building || "");
+      setAddressFloor(data.address_floor || "");
+      setAddressFlat(data.address_flat || "");
     }).catch(() => toast.error(t("profile.load_error")))
     .finally(() => setLoading(false));
   }, [t]);
@@ -32,7 +40,14 @@ export default function ProfilePage() {
   const saveProfile = async () => {
     setSaving(true);
     try {
-      await api.put("/api/users/profile/", { phone, address });
+      await api.put("/api/users/profile/", {
+        phone,
+        address_city: addressCity,
+        address_street: addressStreet,
+        address_building: addressBuilding,
+        address_floor: addressFloor,
+        address_flat: addressFlat,
+      });
       toast.success(t("profile.saved"));
     } catch { toast.error(t("profile.save_error")); }
     finally { setSaving(false); }
@@ -77,7 +92,13 @@ export default function ProfilePage() {
           <h2 className="text-lg font-semibold mb-4">{t("profile.details")}</h2>
           <div className="space-y-4">
             <Input label={t("profile.phone")} value={phone} onChange={(e) => setPhone(e.target.value)} />
-            <Input label={t("profile.address")} multiline rows={2} value={address} onChange={(e) => setAddress(e.target.value)} />
+            <div className="grid grid-cols-2 gap-3">
+              <Input label={t("profile.address_city")} value={addressCity} onChange={(e) => setAddressCity(e.target.value)} />
+              <Input label={t("profile.address_street")} value={addressStreet} onChange={(e) => setAddressStreet(e.target.value)} />
+              <Input label={t("profile.address_building")} value={addressBuilding} onChange={(e) => setAddressBuilding(e.target.value)} />
+              <Input label={t("profile.address_floor")} value={addressFloor} onChange={(e) => setAddressFloor(e.target.value)} />
+              <Input label={t("profile.address_flat")} value={addressFlat} onChange={(e) => setAddressFlat(e.target.value)} />
+            </div>
             <Button loading={saving} onClick={saveProfile}>{t("profile.save")}</Button>
           </div>
         </Card>

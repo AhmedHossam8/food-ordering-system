@@ -12,6 +12,11 @@ class Profile(models.Model):
     )
     phone = models.CharField(_("phone"), max_length=20, blank=True)
     address = models.TextField(_("address"), blank=True)
+    address_city = models.CharField(_("city"), max_length=100, blank=True)
+    address_street = models.TextField(_("street"), blank=True)
+    address_building = models.CharField(_("building"), max_length=50, blank=True)
+    address_floor = models.CharField(_("floor"), max_length=20, blank=True)
+    address_flat = models.CharField(_("flat"), max_length=20, blank=True)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     updated_at = models.DateTimeField(_("updated at"), auto_now=True)
 
