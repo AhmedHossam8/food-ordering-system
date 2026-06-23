@@ -271,3 +271,17 @@ class AdminUserToggleStaffView(APIView):
             "email": user.email,
             "is_staff": user.is_staff,
         })
+
+
+class AdminUserDeleteView(APIView):
+    permission_classes = [permissions.IsAuthenticated, IsStaffUser]
+
+    def delete(self, request, pk):
+        if request.user.pk == int(pk):
+            return Response({"detail": "You cannot delete yourself."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            user = User.objects.get(pk=pk)
+            user.delete()
+            return Response({"detail": "User deleted."}, status=status.HTTP_204_NO_CONTENT)
+        except User.DoesNotExist:
+            return Response({"detail": "User not found."}, status=status.HTTP_404_NOT_FOUND)

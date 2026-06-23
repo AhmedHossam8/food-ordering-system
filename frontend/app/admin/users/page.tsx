@@ -31,7 +31,20 @@ export default function AdminUsersPage() {
       await api.patch(`/api/admin/users/${user.id}/toggle-staff/`);
       toast.success(user.is_staff ? t("admin_users.staff_off") : t("admin_users.staff_on"));
       fetchUsers();
-    } catch {}
+    } catch (err: any) {
+      toast.error(err.response?.data?.detail || t("admin_users.toggle_staff"));
+    }
+  };
+
+  const handleDelete = async (user: User) => {
+    if (!confirm(t("admin_users.delete_confirm"))) return;
+    try {
+      await api.delete(`/api/admin/users/${user.id}/delete/`);
+      toast.success(t("admin_users.deleted"));
+      fetchUsers();
+    } catch (err: any) {
+      toast.error(err.response?.data?.detail || t("admin_users.cannot_delete_self"));
+    }
   };
 
   return (
@@ -70,12 +83,20 @@ export default function AdminUsersPage() {
                     <span className={`inline-block w-2.5 h-2.5 rounded-full ${u.is_staff ? "bg-green-500" : "bg-gray-300"}`} />
                   </td>
                   <td className="py-3 px-4">
-                    <button
-                      onClick={() => toggleStaff(u)}
-                      className={`text-xs font-medium hover:underline ${u.is_staff ? "text-error" : "text-primary-600"}`}
-                    >
-                      {u.is_staff ? t("admin_users.toggle_staff") : t("admin_users.toggle_staff")}
-                    </button>
+                    <div className="flex gap-2 justify-end">
+                      <button
+                        onClick={() => toggleStaff(u)}
+                        className={`text-xs font-medium hover:underline ${u.is_staff ? "text-error" : "text-primary-600"}`}
+                      >
+                        {t("admin_users.toggle_staff")}
+                      </button>
+                      <button
+                        onClick={() => handleDelete(u)}
+                        className="text-xs font-medium text-error hover:underline"
+                      >
+                        {t("admin_users.delete")}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

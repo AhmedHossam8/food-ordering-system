@@ -266,6 +266,10 @@ const en: Record<string, string> = {
   "admin_users.staff_on": "Staff access granted",
   "admin_users.staff_off": "Staff access revoked",
   "admin_users.no_users": "No users found",
+  "admin_users.delete": "Delete",
+  "admin_users.delete_confirm": "Are you sure you want to delete this user?",
+  "admin_users.deleted": "User deleted",
+  "admin_users.cannot_delete_self": "You cannot delete yourself",
 
   /* Admin Orders */
   "admin_orders.title": "Orders Management",
@@ -579,6 +583,10 @@ const ar: Record<string, string> = {
   "admin_users.staff_on": "تم منح صلاحية الموظف",
   "admin_users.staff_off": "تم إزالة صلاحية الموظف",
   "admin_users.no_users": "لا يوجد مستخدمين",
+  "admin_users.delete": "حذف",
+  "admin_users.delete_confirm": "هل أنت متأكد من حذف هذا المستخدم؟",
+  "admin_users.deleted": "تم حذف المستخدم",
+  "admin_users.cannot_delete_self": "لا يمكنك حذف نفسك",
 
   /* Admin Orders */
   "admin_orders.title": "إدارة الطلبات",

@@ -2,6 +2,7 @@ from django.urls import path
 from .views import (
     AdminOrderDetailView,
     AdminOrderListView,
+    AdminUserDeleteView,
     AdminUserListView,
     AdminUserToggleStaffView,
     DashboardView,
@@ -19,4 +20,5 @@ urlpatterns = [
     path("orders/<int:pk>/", AdminOrderDetailView.as_view(), name="admin-order-detail"),
     path("users/", AdminUserListView.as_view(), name="admin-user-list"),
     path("users/<int:pk>/toggle-staff/", AdminUserToggleStaffView.as_view(), name="admin-user-toggle-staff"),
+    path("users/<int:pk>/delete/", AdminUserDeleteView.as_view(), name="admin-user-delete"),
 ]
