@@ -23,6 +23,7 @@ export default function Navbar() {
   const [cartOpen, setCartOpen] = useState(false);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [cartTotal, setCartTotal] = useState("0.00");
+  const [updatingCart, setUpdatingCart] = useState<number | null>(null);
   const [isStaff, setIsStaff] = useState(false);
   const isHome = pathname === "/";
 
@@ -54,6 +55,31 @@ export default function Navbar() {
       }).catch(() => {});
     }
   }, [authed, cartOpen]);
+
+  const updateCartQty = async (itemId: number, qty: number) => {
+    if (qty < 1) return;
+    setUpdatingCart(itemId);
+    try {
+      await api.patch(`/api/orders/cart/items/${itemId}/`, { quantity: qty });
+      const { data } = await api.get("/api/orders/cart/");
+      setCartItems(data.items || []);
+      setCartTotal(data.total || "0.00");
+      refreshCartCount();
+    } catch {}
+    finally { setUpdatingCart(null); }
+  };
+
+  const removeCartItem = async (itemId: number) => {
+    setUpdatingCart(itemId);
+    try {
+      await api.delete(`/api/orders/cart/items/${itemId}/remove/`);
+      const { data } = await api.get("/api/orders/cart/");
+      setCartItems(data.items || []);
+      setCartTotal(data.total || "0.00");
+      refreshCartCount();
+    } catch {}
+    finally { setUpdatingCart(null); }
+  };
 
   return (
     <nav className="bg-white border-b border-border sticky top-0 z-40">
@@ -103,21 +129,45 @@ export default function Navbar() {
                 {cartOpen && (
                   <>
                     <div className="fixed inset-0 z-10" onClick={() => setCartOpen(false)} />
-                    <div className="absolute right-0 mt-2 w-80 bg-white border border-border rounded-xl shadow-xl z-20 py-2 max-h-96 flex flex-col">
+                    <div className="absolute right-0 mt-2 w-96 bg-white border border-border rounded-xl shadow-xl z-20 py-2 max-h-[32rem] flex flex-col">
                       {cartItems.length === 0 ? (
                         <p className="px-4 py-8 text-center text-text-muted text-sm">{t("cart.empty_title")}</p>
                       ) : (
                         <>
                           <div className="overflow-y-auto flex-1">
                             {cartItems.map((item) => (
-                              <div key={item.id} className="flex items-center justify-between px-4 py-2.5 hover:bg-surface-hover">
+                              <div key={item.id} className="flex items-center gap-3 px-4 py-2.5 hover:bg-surface-hover">
                                 <div className="flex-1 min-w-0">
                                   <p className="text-sm font-medium text-text-primary truncate">{item.menu_item_name}</p>
-                                  <p className="text-xs text-text-muted">
-                                    {t("cart.qty_label")} {item.quantity} x {formatPrice(item.menu_item_price, lang)}
-                                  </p>
+                                  <p className="text-xs text-text-muted">{formatPrice(item.menu_item_price, lang)} {t("cart.each")}</p>
                                 </div>
-                                <span className="text-sm font-semibold text-text-primary ml-3">{formatPrice(item.subtotal, lang)}</span>
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    onClick={() => updateCartQty(item.id, item.quantity - 1)}
+                                    disabled={updatingCart === item.id}
+                                    className="w-7 h-7 flex items-center justify-center rounded-full bg-surface-hover text-text-secondary hover:bg-gray-200 disabled:opacity-50 text-sm font-medium"
+                                  >
+                                    -
+                                  </button>
+                                  <span className="w-8 text-center text-sm font-medium text-text-primary">{item.quantity}</span>
+                                  <button
+                                    onClick={() => updateCartQty(item.id, item.quantity + 1)}
+                                    disabled={updatingCart === item.id}
+                                    className="w-7 h-7 flex items-center justify-center rounded-full bg-surface-hover text-text-secondary hover:bg-gray-200 disabled:opacity-50 text-sm font-medium"
+                                  >
+                                    +
+                                  </button>
+                                </div>
+                                <span className="text-sm font-semibold text-text-primary w-20 text-end">{formatPrice(item.subtotal, lang)}</span>
+                                <button
+                                  onClick={() => removeCartItem(item.id)}
+                                  disabled={updatingCart === item.id}
+                                  className="text-text-muted hover:text-error transition-colors disabled:opacity-50"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                </button>
                               </div>
                             ))}
                           </div>

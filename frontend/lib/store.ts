@@ -55,7 +55,8 @@ export const useAuthStore = create<AuthState & CartState>((set, get) => ({
     try {
       const { default: api } = await import("@/lib/api");
       const { data } = await api.get("/api/orders/cart/");
-      set({ cartCount: (data.items || []).length });
+      const totalQty = (data.items || []).reduce((sum: number, i: {quantity: number}) => sum + (i.quantity || 0), 0);
+      set({ cartCount: totalQty });
     } catch { set({ cartCount: 0 }); }
   },
 }));
