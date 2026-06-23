@@ -2,7 +2,7 @@ from datetime import timedelta
 from decimal import Decimal
 
 from django.contrib.auth.models import User
-from django.db.models import Count, Sum
+from django.db.models import Count, F, Sum
 from django.db.models.functions import TruncDay, TruncMonth, TruncWeek
 from django.utils import timezone
 from rest_framework import generics, permissions
@@ -137,7 +137,7 @@ class TopItemsView(APIView):
             )
             .annotate(
                 total_quantity=Sum("quantity"),
-                total_revenue=Sum("unit_price") * Sum("quantity"),
+                total_revenue=Sum(F("unit_price") * F("quantity")),
                 order_count=Count("order", distinct=True),
             )
             .order_by("-total_quantity")[:limit]

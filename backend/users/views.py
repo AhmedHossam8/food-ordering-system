@@ -7,15 +7,34 @@ from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.translation import activate, get_language
 from rest_framework import generics, permissions, status
+from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework_simplejwt.views import TokenObtainPairView
 from .models import Profile
 from .serializers import ProfileSerializer, RegisterSerializer
+
+
+class LoginThrottle(AnonRateThrottle):
+    scope = "login"
+
+
+class LoginView(TokenObtainPairView):
+    throttle_classes = [LoginThrottle]
+
+
+class RegisterThrottle(AnonRateThrottle):
+    scope = "register"
+
+
+class PasswordResetThrottle(AnonRateThrottle):
+    scope = "password_reset"
 
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
+    throttle_classes = [RegisterThrottle]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -40,6 +59,8 @@ class ProfileView(generics.RetrieveUpdateAPIView):
 
 
 class PasswordResetRequestView(APIView):
+    throttle_classes = [PasswordResetThrottle]
+
     def post(self, request):
         email = request.data.get("email", "")
         try:
@@ -70,6 +91,8 @@ class PasswordResetRequestView(APIView):
 
 
 class PasswordResetConfirmView(APIView):
+    throttle_classes = [PasswordResetThrottle]
+
     def post(self, request, uidb64, token):
         try:
             uid = force_str(urlsafe_base64_decode(uidb64))

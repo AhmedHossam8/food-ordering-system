@@ -141,7 +141,22 @@ class OrderListView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return Order.objects.filter(user=self.request.user)
+        qs = Order.objects.filter(user=self.request.user)
+        status = self.request.query_params.get("status")
+        payment_status = self.request.query_params.get("payment_status")
+        date_from = self.request.query_params.get("date_from")
+        date_to = self.request.query_params.get("date_to")
+
+        if status:
+            qs = qs.filter(status=status)
+        if payment_status:
+            qs = qs.filter(payment_status=payment_status)
+        if date_from:
+            qs = qs.filter(created_at__date__gte=date_from)
+        if date_to:
+            qs = qs.filter(created_at__date__lte=date_to)
+
+        return qs
 
 
 class OrderDetailView(generics.RetrieveAPIView):
@@ -270,6 +285,22 @@ class OrderStatusUpdateView(generics.UpdateAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        if order.user and order.user.email:
+            try:
+                send_mail(
+                    subject=f"Order #{order.id} Status Update",
+                    message=(
+                        f"Your order #{order.id} status has changed to '{order.status}'.\n\n"
+                        f"Note: {note or 'No additional notes.'}\n\n"
+                        f"Thank you for choosing us!"
+                    ),
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[order.user.email],
+                    fail_silently=True,
+                )
+            except Exception as e:
+                logger.warning("Failed to send status email: %s", e)
+
         return Response(OrderSerializer(order).data)
 
 
@@ -308,5 +339,17 @@ class CancelOrderView(generics.CreateAPIView):
                 MenuItem.objects.filter(pk=order_item.menu_item.pk).update(
                     stock=models.F("stock") + order_item.quantity
                 )
+
+        if order.user and order.user.email:
+            try:
+                send_mail(
+                    subject=f"Order #{order.id} Cancelled",
+                    message=f"Your order #{order.id} has been cancelled.\n\nIf you did not request this, please contact support.",
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[order.user.email],
+                    fail_silently=True,
+                )
+            except Exception as e:
+                logger.warning("Failed to send cancellation email: %s", e)
 
         return Response(OrderSerializer(order).data)
