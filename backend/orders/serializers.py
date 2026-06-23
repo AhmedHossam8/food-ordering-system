@@ -1,10 +1,22 @@
 from rest_framework import serializers
 from menu.models import MenuItem
+from utils.i18n import localized_value
 from .models import Cart, CartItem, Order, OrderItem, OrderStatusLog
+
+
+class LocalizedField(serializers.SerializerMethodField):
+    def __init__(self, field_name, **kwargs):
+        self.field_name = field_name
+        super().__init__(**kwargs)
+
+    def to_representation(self, value):
+        request = self.parent.context.get("request")
+        return localized_value(value, self.field_name, request)
 
 
 class CartItemSerializer(serializers.ModelSerializer):
     menu_item_name = serializers.CharField(source="menu_item.name", read_only=True)
+    menu_item_name_localized = LocalizedField("menu_item__name")
     menu_item_price = serializers.DecimalField(
         source="menu_item.price", max_digits=10, decimal_places=2, read_only=True
     )
@@ -13,7 +25,7 @@ class CartItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = CartItem
         fields = [
-            "id", "menu_item", "menu_item_name",
+            "id", "menu_item", "menu_item_name", "menu_item_name_localized",
             "menu_item_price", "quantity", "subtotal",
         ]
 
@@ -79,11 +91,12 @@ class OrderStatusLogSerializer(serializers.ModelSerializer):
 
 class OrderItemSerializer(serializers.ModelSerializer):
     menu_item_name = serializers.CharField(source="menu_item.name", read_only=True)
+    menu_item_name_localized = LocalizedField("menu_item__name")
 
     class Meta:
         model = OrderItem
         fields = [
-            "id", "menu_item", "menu_item_name",
+            "id", "menu_item", "menu_item_name", "menu_item_name_localized",
             "quantity", "unit_price",
         ]
 

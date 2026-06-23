@@ -1,0 +1,178 @@
+# Arabic translation for Food Ordering System
+# Copyright (C) 2026
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Food Ordering System 1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-23 14:00+0000\n"
+"PO-Revision-Date: 2026-06-23 14:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: ar\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
+
+# menu/models.py
+msgid "name"
+msgstr "الاسم"
+
+msgid "name (Arabic)"
+msgstr "الاسم (عربي)"
+
+msgid "description"
+msgstr "الوصف"
+
+msgid "description (Arabic)"
+msgstr "الوصف (عربي)"
+
+msgid "display order"
+msgstr "ترتيب العرض"
+
+msgid "category"
+msgstr "التصنيف"
+
+msgid "categories"
+msgstr "التصنيفات"
+
+msgid "menu item"
+msgstr "عنصر القائمة"
+
+msgid "menu items"
+msgstr "عناصر القائمة"
+
+msgid "price"
+msgstr "السعر"
+
+msgid "image"
+msgstr "الصورة"
+
+msgid "is available"
+msgstr "متوفر"
+
+msgid "created at"
+msgstr "تاريخ الإنشاء"
+
+msgid "updated at"
+msgstr "تاريخ التحديث"
+
+# users/models.py
+msgid "user"
+msgstr "المستخدم"
+
+msgid "phone"
+msgstr "الهاتف"
+
+msgid "address"
+msgstr "العنوان"
+
+msgid "profile"
+msgstr "الملف الشخصي"
+
+msgid "profiles"
+msgstr "الملفات الشخصية"
+
+# orders/models.py
+msgid "cart"
+msgstr "السلة"
+
+msgid "carts"
+msgstr "السلال"
+
+msgid "cart item"
+msgstr "عنصر السلة"
+
+msgid "cart items"
+msgstr "عناصر السلة"
+
+msgid "quantity"
+msgstr "الكمية"
+
+msgid "Pending"
+msgstr "قيد الانتظار"
+
+msgid "Confirmed"
+msgstr "مؤكد"
+
+msgid "Preparing"
+msgstr "قيد التحضير"
+
+msgid "Ready"
+msgstr "جاهز"
+
+msgid "Delivered"
+msgstr "تم التوصيل"
+
+msgid "Cancelled"
+msgstr "ملغي"
+
+msgid "Online Payment"
+msgstr "دفع إلكتروني"
+
+msgid "Cash on Delivery"
+msgstr "الدفع عند الاستلام"
+
+msgid "Paid"
+msgstr "مدفوع"
+
+msgid "Failed"
+msgstr "فشل"
+
+msgid "Refunded"
+msgstr "مسترجع"
+
+msgid "status"
+msgstr "الحالة"
+
+msgid "payment method"
+msgstr "طريقة الدفع"
+
+msgid "payment status"
+msgstr "حالة الدفع"
+
+msgid "transaction ID"
+msgstr "معرف المعاملة"
+
+msgid "total price"
+msgstr "السعر الإجمالي"
+
+msgid "delivery address"
+msgstr "عنوان التوصيل"
+
+msgid "order"
+msgstr "الطلب"
+
+msgid "orders"
+msgstr "الطلبات"
+
+msgid "order item"
+msgstr "عنصر الطلب"
+
+msgid "order items"
+msgstr "عناصر الطلب"
+
+msgid "unit price"
+msgstr "سعر الوحدة"
+
+msgid "order status log"
+msgstr "سجل حالة الطلب"
+
+msgid "order status logs"
+msgstr "سجلات حالة الطلب"
+
+msgid "from status"
+msgstr "من حالة"
+
+msgid "to status"
+msgstr "إلى حالة"
+
+msgid "changed by"
+msgstr "تم التغيير بواسطة"
+
+msgid "note"
+msgstr "ملاحظة"
+
+msgid "Cannot transition from '%(from)s' to '%(to)s'. Allowed transitions: %(allowed)s"
+msgstr "لا يمكن الانتقال من '%(from)s' إلى '%(to)s'. الانتقالات المسموحة: %(allowed)s"

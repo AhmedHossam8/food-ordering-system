@@ -34,6 +34,7 @@ def api_root(request):
             "orders": "/api/orders/",
             "payment": "/api/orders/webhook/stripe/",
             "admin-api": "/api/admin/",
+            "language": "/api/users/language/",
         },
     })
 
