@@ -25,7 +25,7 @@ def create_payment_intent(order):
     return intent
 
 
-def confirm_payment_intent(intent_id):
+def retrieve_payment_intent(intent_id):
     try:
         return stripe.PaymentIntent.retrieve(intent_id)
     except stripe.StripeError:

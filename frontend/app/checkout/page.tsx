@@ -1,5 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
 import { useLanguage } from "@/lib/language";
@@ -14,10 +16,113 @@ interface SavedAddr {
   city: string; district: string; street: string; building: string; floor: string; flat: string;
 }
 
+interface CartItem {
+  id: number;
+  menu_item_name: string;
+  menu_item_name_localized?: string;
+  quantity: number;
+  subtotal: string;
+}
+
+interface CartResponse {
+  items: CartItem[];
+  total: string;
+}
+
+interface ProfileResponse {
+  address_city?: string;
+  address_district?: string;
+  address_street?: string;
+  address_building?: string;
+  address_floor?: string;
+  address_flat?: string;
+}
+
+interface OrderResponse {
+  id: number;
+}
+
+interface PaymentIntentResponse {
+  client_secret: string;
+}
+
+function apiErrorMessage(error: unknown, fallback: string) {
+  if (typeof error === "object" && error && "response" in error) {
+    const apiError = error as { response?: { data?: { detail?: string } } };
+    return apiError.response?.data?.detail || fallback;
+  }
+  return fallback;
+}
+
+function PaymentForm({
+  clientSecret,
+  orderId,
+  t,
+}: {
+  clientSecret: string;
+  orderId: number;
+  t: (key: string) => string;
+}) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [paying, setPaying] = useState(false);
+
+  const handlePay = async () => {
+    if (!stripe || !elements) return;
+    setPaying(true);
+
+    const card = elements.getElement(CardElement);
+    if (!card) {
+      toast.error(t("checkout.error"));
+      setPaying(false);
+      return;
+    }
+
+    const res = await stripe.confirmCardPayment(clientSecret, {
+      payment_method: { card },
+    });
+
+    if (res.error) {
+      toast.error(res.error.message || t("checkout.error"));
+      setPaying(false);
+      return;
+    }
+
+    if (res.paymentIntent?.status !== "succeeded") {
+      toast.error(t("checkout.payment_pending"));
+      setPaying(false);
+      return;
+    }
+
+    try {
+      await api.post(`/api/orders/${orderId}/complete-payment/`, {
+        payment_intent_id: res.paymentIntent.id,
+      });
+      toast.success(t("checkout.success"));
+      window.location.href = `/orders/${orderId}`;
+    } catch (e: unknown) {
+      toast.error(apiErrorMessage(e, t("checkout.verify_error")));
+      setPaying(false);
+    }
+  };
+
+  return (
+    <Card className="p-6">
+      <h2 className="text-lg font-semibold mb-4">{t("checkout.online")}</h2>
+      <div className="mb-4 rounded-lg border border-border bg-white p-3">
+        <CardElement options={{ hidePostalCode: true }} />
+      </div>
+      <Button className="w-full" onClick={handlePay} loading={paying} disabled={!stripe}>
+        {t("checkout.pay_now")}
+      </Button>
+    </Card>
+  );
+}
+
 export default function CheckoutPage() {
   const { t, lang } = useLanguage();
   const router = useRouter();
-  const [items, setItems] = useState<any[]>([]);
+  const [items, setItems] = useState<CartItem[]>([]);
   const [total, setTotal] = useState("0.00");
   const [paymentMethod, setPaymentMethod] = useState<"cod" | "online">("cod");
   const [city, setCity] = useState("");
@@ -29,8 +134,14 @@ export default function CheckoutPage() {
   const [addressError, setAddressError] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [orderId, setOrderId] = useState<number | null>(null);
   const [savedAddr, setSavedAddr] = useState<SavedAddr | null>(null);
   const [showAddressInput, setShowAddressInput] = useState(false);
+
+  // Stripe publishable key (must be set as NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+  const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "";
+  const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
   const combineAddress = () => {
     const parts = [city, district, street, building, floor, flat].filter(Boolean);
@@ -39,8 +150,8 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     Promise.all([
-      api.get("/api/orders/cart/"),
-      api.get("/api/users/profile/"),
+      api.get<CartResponse>("/api/orders/cart/"),
+      api.get<ProfileResponse>("/api/users/profile/"),
     ])
       .then(([cartRes, profileRes]) => {
         setItems(cartRes.data.items || []);
@@ -67,16 +178,30 @@ export default function CheckoutPage() {
       setAddressError(t("checkout.enter_address"));
       return;
     }
+    if (paymentMethod === "online" && !stripeKey) {
+      toast.error(t("checkout.not_configured"));
+      return;
+    }
     setSubmitting(true);
     try {
-      const { data } = await api.post("/api/orders/create/", {
+      const { data } = await api.post<OrderResponse>("/api/orders/create/", {
         payment_method: paymentMethod,
         delivery_address,
       });
-      toast.success(t("checkout.success"));
-      router.push(`/orders/${data.id}`);
-    } catch (err: any) {
-      toast.error(err.response?.data?.detail || t("checkout.error"));
+      if (paymentMethod === "online") {
+        try {
+          const piRes = await api.post<PaymentIntentResponse>(`/api/orders/${data.id}/payment-intent/`);
+          setClientSecret(piRes.data.client_secret);
+          setOrderId(data.id);
+        } catch (e: unknown) {
+          toast.error(apiErrorMessage(e, t("checkout.error")));
+        }
+      } else {
+        toast.success(t("checkout.success"));
+        router.push(`/orders/${data.id}`);
+      }
+    } catch (err: unknown) {
+      toast.error(apiErrorMessage(err, t("checkout.error")));
     } finally {
       setSubmitting(false);
     }
@@ -94,8 +219,6 @@ export default function CheckoutPage() {
       setAddressError("");
     }
   };
-
-  const fieldsFilled = city || district || street || building || floor || flat;
 
   if (loading) return <div className="flex justify-center py-16"><Spinner className="h-8 w-8" /></div>;
 
@@ -218,46 +341,55 @@ export default function CheckoutPage() {
                 </div>
               </label>
               <label className={`flex items-center gap-3 p-4 border rounded-xl cursor-pointer transition-colors ${paymentMethod === "online" ? "border-primary-500 bg-primary-50" : "border-border hover:bg-surface-hover"}`}>
-                <input type="radio" name="payment" value="online" checked={paymentMethod === "online"} onChange={() => setPaymentMethod("online")} className="accent-primary-600" />
+                <input type="radio" name="payment" value="online" checked={paymentMethod === "online"} onChange={() => setPaymentMethod("online")} className="accent-primary-600" disabled={!stripeKey} />
                 <div>
                   <p className="font-medium text-text-primary">{t("checkout.online")}</p>
                   <p className="text-sm text-text-secondary">{t("checkout.online_desc")}</p>
                 </div>
               </label>
+              {!stripeKey && (
+                <p className="text-xs text-error">{t("checkout.not_configured")}</p>
+              )}
             </div>
           </Card>
         </div>
 
-        {/* Right - Summary */}
+        {/* Right - Summary or Payment Form */}
         <div className="lg:col-span-2">
-          <Card className="p-6 sticky top-24">
-            <h2 className="text-lg font-semibold mb-4">{t("checkout.summary_title")}</h2>
-            <div className="space-y-3 mb-4">
-              {items.map((item: any) => (
-                <div key={item.id} className="flex justify-between text-sm">
-                  <span className="text-text-secondary">{(item.menu_item_name_localized || item.menu_item_name)} x{item.quantity}</span>
-                  <span className="font-medium">{formatPrice(item.subtotal, lang)}</span>
+          {clientSecret && orderId && stripePromise ? (
+            <Elements stripe={stripePromise} options={{ clientSecret }}>
+              <PaymentForm clientSecret={clientSecret} orderId={orderId} t={t} />
+            </Elements>
+          ) : (
+            <Card className="p-6 sticky top-24">
+              <h2 className="text-lg font-semibold mb-4">{t("checkout.summary_title")}</h2>
+              <div className="space-y-3 mb-4">
+                {items.map((item) => (
+                  <div key={item.id} className="flex justify-between text-sm">
+                    <span className="text-text-secondary">{(item.menu_item_name_localized || item.menu_item_name)} x{item.quantity}</span>
+                    <span className="font-medium">{formatPrice(item.subtotal, lang)}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="border-t border-border pt-4 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-text-secondary">{t("checkout.subtotal")}</span>
+                  <span>{formatPrice(total, lang)}</span>
                 </div>
-              ))}
-            </div>
-            <div className="border-t border-border pt-4 space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-text-secondary">{t("checkout.subtotal")}</span>
-                <span>{formatPrice(total, lang)}</span>
+                <div className="flex justify-between text-sm">
+                  <span className="text-text-secondary">{t("checkout.delivery")}</span>
+                  <span className="text-success font-medium">{t("checkout.free")}</span>
+                </div>
+                <div className="flex justify-between text-lg font-bold pt-2 border-t border-border">
+                  <span>{t("checkout.total")}</span>
+                  <span className="text-primary-600">{formatPrice(total, lang)}</span>
+                </div>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-text-secondary">{t("checkout.delivery")}</span>
-                <span className="text-success font-medium">{t("checkout.free")}</span>
-              </div>
-              <div className="flex justify-between text-lg font-bold pt-2 border-t border-border">
-                <span>{t("checkout.total")}</span>
-                <span className="text-primary-600">{formatPrice(total, lang)}</span>
-              </div>
-            </div>
-            <Button className="w-full mt-6" size="lg" loading={submitting} onClick={placeOrder}>
-              {t("checkout.place_order")}
-            </Button>
-          </Card>
+              <Button className="w-full mt-6" size="lg" loading={submitting} onClick={placeOrder}>
+                {t("checkout.place_order")}
+              </Button>
+            </Card>
+          )}
         </div>
       </div>
     </div>

@@ -148,6 +148,80 @@ class OrderTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
+class PaymentCompletionTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="testuser", password="Testpass123",
+        )
+        self.client.force_authenticate(user=self.user)
+        self.order = Order.objects.create(
+            user=self.user,
+            payment_method=Order.PaymentMethod.ONLINE,
+            payment_status=Order.PaymentStatus.PENDING,
+            transaction_id="pi_test",
+            total_price=Decimal("19.98"),
+        )
+
+    @patch("orders.views.retrieve_payment_intent")
+    def test_complete_payment_marks_order_paid_and_confirmed(self, mock_retrieve):
+        mock_retrieve.return_value = {
+            "id": "pi_test",
+            "status": "succeeded",
+            "amount": 1998,
+            "metadata": {"order_id": str(self.order.id)},
+        }
+
+        response = self.client.post(
+            f"/api/orders/{self.order.id}/complete-payment/",
+            {"payment_intent_id": "pi_test"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.payment_status, Order.PaymentStatus.PAID)
+        self.assertEqual(self.order.status, Order.Status.CONFIRMED)
+
+    @patch("orders.views.retrieve_payment_intent")
+    def test_complete_payment_rejects_unpaid_intent(self, mock_retrieve):
+        mock_retrieve.return_value = {
+            "id": "pi_test",
+            "status": "requires_payment_method",
+            "amount": 1998,
+            "metadata": {"order_id": str(self.order.id)},
+        }
+
+        response = self.client.post(
+            f"/api/orders/{self.order.id}/complete-payment/",
+            {"payment_intent_id": "pi_test"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.payment_status, Order.PaymentStatus.FAILED)
+        self.assertEqual(self.order.status, Order.Status.PENDING)
+
+    @patch("orders.views.retrieve_payment_intent")
+    def test_complete_payment_rejects_wrong_amount(self, mock_retrieve):
+        mock_retrieve.return_value = {
+            "id": "pi_test",
+            "status": "succeeded",
+            "amount": 999,
+            "metadata": {"order_id": str(self.order.id)},
+        }
+
+        response = self.client.post(
+            f"/api/orders/{self.order.id}/complete-payment/",
+            {"payment_intent_id": "pi_test"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.payment_status, Order.PaymentStatus.PENDING)
+
+
 class OrderCancellationTests(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(

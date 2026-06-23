@@ -129,3 +129,7 @@ class CreateOrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = ["payment_method", "delivery_address"]
+
+
+class CompletePaymentSerializer(serializers.Serializer):
+    payment_intent_id = serializers.CharField(max_length=200)
