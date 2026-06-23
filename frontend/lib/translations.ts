@@ -135,6 +135,7 @@ const en: Record<string, string> = {
   "checkout.saved_hint": "We found a saved address in your profile.",
   "checkout.use_this": "Use this address",
   "checkout.edit": "Edit",
+  "checkout.required_field": "Required",
 
   /* Orders List */
   "orders.title": "My Orders",
@@ -462,6 +463,7 @@ const ar: Record<string, string> = {
   "checkout.saved_hint": "وجدنا عنواناً محفوظاً في ملفك الشخصي.",
   "checkout.use_this": "استخدم هذا العنوان",
   "checkout.edit": "تعديل",
+  "checkout.required_field": "مطلوب",
 
   /* Orders List */
   "orders.title": "طلباتي",

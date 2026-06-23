@@ -81,7 +81,9 @@ export default function CheckoutPage() {
         {/* Left - Order details */}
         <div className="lg:col-span-3 space-y-6">
           <Card className="p-6">
-            <h2 className="text-lg font-semibold mb-4">{t("checkout.address_title")}</h2>
+            <h2 className="text-lg font-semibold mb-4">
+              {t("checkout.address_title")} <span className="text-error">*</span>
+            </h2>
 
             {savedAddress && !showAddressInput ? (
               <div className="space-y-3">
@@ -118,6 +120,16 @@ export default function CheckoutPage() {
                       {t("checkout.use_this")}
                     </button>
                   </div>
+                )}
+                {!savedAddress && (
+                  <p className="text-xs text-text-muted mb-1">
+                    <span className="text-error">*</span> {t("checkout.required_field")}
+                  </p>
+                )}
+                {savedAddress && showAddressInput && (
+                  <p className="text-xs text-text-muted mb-1">
+                    <span className="text-error">*</span> {t("checkout.required_field")}
+                  </p>
                 )}
                 <Input
                   multiline
