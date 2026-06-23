@@ -142,3 +142,11 @@ class LanguageView(APIView):
             "language": lang,
             "supported_languages": ["en", "ar"],
         })
+
+
+class DeleteAccountView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self, request):
+        request.user.delete()
+        return Response({"detail": "Account deleted."}, status=status.HTTP_204_NO_CONTENT)

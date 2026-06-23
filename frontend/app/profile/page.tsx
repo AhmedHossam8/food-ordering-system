@@ -1,7 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import api from "@/lib/api";
 import { useLanguage } from "@/lib/language";
+import { useAuthStore } from "@/lib/store";
 import toast from "react-hot-toast";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -10,6 +12,8 @@ import Spinner from "@/components/ui/Spinner";
 
 export default function ProfilePage() {
   const { lang, setLang, t } = useLanguage();
+  const logout = useAuthStore((s) => s.logout);
+  const router = useRouter();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -40,6 +44,18 @@ export default function ProfilePage() {
       await api.put("/api/users/language/", { language });
       toast.success(t("profile.lang_updated"));
     } catch { toast.error(t("profile.lang_error")); }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!confirm(t("profile.delete_confirm"))) return;
+    try {
+      await api.delete("/api/users/delete-account/");
+      toast.success(t("profile.deleted"));
+      logout();
+      router.push("/");
+    } catch {
+      toast.error(t("profile.delete_error"));
+    }
   };
 
   if (loading) return <div className="flex justify-center py-16"><Spinner className="h-8 w-8" /></div>;
@@ -82,6 +98,14 @@ export default function ProfilePage() {
               {t("profile.arabic")}
             </button>
           </div>
+        </Card>
+
+        <Card className="p-6 border-error/30">
+          <h2 className="text-lg font-semibold text-error mb-4">{t("profile.delete_account")}</h2>
+          <p className="text-sm text-text-secondary mb-4">{t("profile.delete_confirm")}</p>
+          <Button onClick={handleDeleteAccount} className="bg-error hover:bg-red-700 text-white">
+            {t("profile.delete_account")}
+          </Button>
         </Card>
       </div>
     </div>

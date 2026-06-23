@@ -169,6 +169,10 @@ const en: Record<string, string> = {
   "profile.lang_updated": "Language updated",
   "profile.lang_error": "Failed to update language",
   "profile.load_error": "Failed to load profile",
+  "profile.delete_account": "Delete Account",
+  "profile.delete_confirm": "Are you sure? This cannot be undone.",
+  "profile.deleted": "Account deleted",
+  "profile.delete_error": "Failed to delete account",
 
   /* Forgot Password */
   "forgot.title": "Reset Password",
@@ -486,6 +490,10 @@ const ar: Record<string, string> = {
   "profile.lang_updated": "تم تحديث اللغة",
   "profile.lang_error": "فشل تحديث اللغة",
   "profile.load_error": "فشل تحميل الملف الشخصي",
+  "profile.delete_account": "حذف الحساب",
+  "profile.delete_confirm": "هل أنت متأكد؟ لا يمكن التراجع عن هذا.",
+  "profile.deleted": "تم حذف الحساب",
+  "profile.delete_error": "فشل حذف الحساب",
 
   /* Forgot Password */
   "forgot.title": "إعادة تعيين كلمة المرور",
