@@ -5,13 +5,14 @@ from django.contrib.auth.models import User
 from django.db.models import Count, F, Sum
 from django.db.models.functions import TruncDay, TruncMonth, TruncWeek
 from django.utils import timezone
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from menu.models import Category, MenuItem
 from orders.models import Order, OrderItem
 from orders.serializers import OrderSerializer
+from users.serializers import UserSerializer
 
 
 class IsStaffUser(permissions.BasePermission):
@@ -245,3 +246,28 @@ class ExportOrdersView(APIView):
             ])
 
         return response
+
+
+class AdminUserListView(generics.ListAPIView):
+    queryset = User.objects.all().order_by("-date_joined")
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated, IsStaffUser]
+
+
+class AdminUserToggleStaffView(APIView):
+    permission_classes = [permissions.IsAuthenticated, IsStaffUser]
+
+    def patch(self, request, pk):
+        try:
+            user = User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            return Response({"detail": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        user.is_staff = not user.is_staff
+        user.save(update_fields=["is_staff"])
+        return Response({
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "is_staff": user.is_staff,
+        })

@@ -16,12 +16,13 @@ interface InputProps {
   minLength?: number;
   autoComplete?: string;
   showPasswordToggle?: boolean;
+  step?: string;
 }
 
 export default function Input({
   label, type = "text", value, onChange, placeholder, error,
   required, disabled, multiline, rows = 3, className = "", minLength, autoComplete,
-  showPasswordToggle,
+  showPasswordToggle, step,
 }: InputProps) {
   const [showPassword, setShowPassword] = useState(false);
   const isPassword = showPasswordToggle && type === "password";
@@ -58,6 +59,7 @@ export default function Input({
             disabled={disabled}
             minLength={minLength}
             autoComplete={autoComplete}
+            step={step}
             className={`${base} ${border} ${isPassword ? "pr-10" : ""}`}
           />
           {isPassword && (

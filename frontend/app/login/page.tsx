@@ -38,8 +38,9 @@ export default function LoginPage() {
       router.push("/menu");
     } catch (err: any) {
       const data = err.response?.data;
-      setFormError(data?.detail || t("login.error"));
-      toast.error(t("login.error"));
+      const msg = data?.detail || (data ? JSON.stringify(data) : err.message) || t("login.error");
+      setFormError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }

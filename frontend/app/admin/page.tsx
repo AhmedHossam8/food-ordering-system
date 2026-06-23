@@ -49,6 +49,15 @@ export default function AdminDashboardPage() {
           <Link href="/admin/orders" className="text-sm font-medium text-primary-600 hover:text-primary-700 px-4 py-2 border border-border rounded-lg hover:bg-surface-hover transition-colors">
             {t("admin.manage_orders")}
           </Link>
+          <Link href="/admin/menu" className="text-sm font-medium text-primary-600 hover:text-primary-700 px-4 py-2 border border-border rounded-lg hover:bg-surface-hover transition-colors">
+            {t("admin.manage_menu")}
+          </Link>
+          <Link href="/admin/categories" className="text-sm font-medium text-primary-600 hover:text-primary-700 px-4 py-2 border border-border rounded-lg hover:bg-surface-hover transition-colors">
+            {t("admin.manage_categories")}
+          </Link>
+          <Link href="/admin/users" className="text-sm font-medium text-primary-600 hover:text-primary-700 px-4 py-2 border border-border rounded-lg hover:bg-surface-hover transition-colors">
+            {t("admin_users.title")}
+          </Link>
           <a
             href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/admin/orders/export/`}
             className="text-sm font-medium text-primary-600 hover:text-primary-700 px-4 py-2 border border-border rounded-lg hover:bg-surface-hover transition-colors"

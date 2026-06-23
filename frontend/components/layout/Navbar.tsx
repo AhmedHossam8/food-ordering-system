@@ -25,6 +25,13 @@ export default function Navbar() {
     if (authed) {
       api.get("/api/users/profile/").then(({ data }) => {
         setIsStaff(data.user?.is_staff || false);
+        if (!user) {
+          useAuthStore.getState().setAuth(
+            { id: data.user.id, username: data.user.username, email: data.user.email },
+            localStorage.getItem("access_token") || "",
+            localStorage.getItem("refresh_token") || "",
+          );
+        }
       }).catch(() => {});
     }
   }, [authed]);
