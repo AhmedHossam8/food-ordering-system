@@ -18,7 +18,7 @@ api.interceptors.request.use((config) => {
     }
     const lang = localStorage.getItem("lang");
     if (lang === "ar") {
-      config.params = { ...config.params, lang: "ar" };
+      config.params = { ...(config.params || {}), lang: "ar" };
     }
   }
   return config;

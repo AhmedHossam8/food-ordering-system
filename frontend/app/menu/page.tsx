@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import api from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
 import { useLanguage } from "@/lib/language";
+import { formatPrice } from "@/lib/utils";
 import toast from "react-hot-toast";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
@@ -33,7 +34,7 @@ interface Category {
 }
 
 function MenuPageContent() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const searchParams = useSearchParams();
   const isAuthed = useAuthStore((s) => s.isAuthenticated)();
 
@@ -55,7 +56,7 @@ function MenuPageContent() {
     api.get("/api/menu/categories/")
       .then(({ data }) => setCategories(data.results || data))
       .catch(() => {});
-  }, [searchParams]);
+  }, [searchParams, t]);
 
   const fetchItems = useCallback(async () => {
     setLoading(true);
@@ -156,7 +157,7 @@ function MenuPageContent() {
                 <h3 className="font-semibold text-text-primary mt-1">{item.name_localized || item.name}</h3>
                 <p className="text-xs text-text-muted mt-1 line-clamp-2">{item.description_localized || item.description}</p>
                 <div className="flex items-center justify-between mt-3">
-                  <span className="text-lg font-bold text-primary-600">${item.price}</span>
+                  <span className="text-lg font-bold text-primary-600">{formatPrice(item.price, lang)}</span>
                   <Button size="sm" onClick={() => addToCart(item.id, 1)}>
                     {t("menu.add")}
                   </Button>
@@ -184,7 +185,7 @@ function MenuPageContent() {
               {selectedItem.stock > 0 ? t("menu.in_stock", { count: selectedItem.stock }) : t("menu.always_available")}
             </p>
             <div className="flex items-center gap-4">
-              <span className="text-2xl font-bold text-primary-600">${selectedItem.price}</span>
+              <span className="text-2xl font-bold text-primary-600">{formatPrice(selectedItem.price, lang)}</span>
               <div className="flex items-center gap-2">
                 <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-8 h-8 bg-gray-100 rounded-full hover:bg-gray-200 flex items-center justify-center font-medium">-</button>
                 <span className="w-8 text-center font-medium">{quantity}</span>
@@ -192,7 +193,7 @@ function MenuPageContent() {
               </div>
             </div>
             <Button className="w-full" size="lg" onClick={() => addToCart(selectedItem.id, quantity)}>
-              {t("menu.add_to_cart")} — ${(parseFloat(selectedItem.price) * quantity).toFixed(2)}
+              {t("menu.add_to_cart")} — {formatPrice((parseFloat(selectedItem.price) * quantity).toFixed(2), lang)}
             </Button>
           </div>
         )}

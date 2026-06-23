@@ -6,12 +6,12 @@ from .models import Cart, CartItem, Order, OrderItem, OrderStatusLog
 
 class LocalizedField(serializers.SerializerMethodField):
     def __init__(self, field_name, **kwargs):
-        self.field_name = field_name
+        self.model_field = field_name
         super().__init__(**kwargs)
 
     def to_representation(self, value):
         request = self.parent.context.get("request")
-        return localized_value(value, self.field_name, request)
+        return localized_value(value, self.model_field, request)
 
 
 class CartItemSerializer(serializers.ModelSerializer):
