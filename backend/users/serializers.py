@@ -36,4 +36,4 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ["user", "phone", "address", "address_city", "address_street", "address_building", "address_floor", "address_flat"]
+        fields = ["user", "phone", "address", "address_city", "address_district", "address_street", "address_building", "address_floor", "address_flat"]

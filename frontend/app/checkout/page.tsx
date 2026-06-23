@@ -11,7 +11,7 @@ import Card from "@/components/ui/Card";
 import Spinner from "@/components/ui/Spinner";
 
 interface SavedAddr {
-  city: string; street: string; building: string; floor: string; flat: string;
+  city: string; district: string; street: string; building: string; floor: string; flat: string;
 }
 
 export default function CheckoutPage() {
@@ -21,6 +21,7 @@ export default function CheckoutPage() {
   const [total, setTotal] = useState("0.00");
   const [paymentMethod, setPaymentMethod] = useState<"cod" | "online">("cod");
   const [city, setCity] = useState("");
+  const [district, setDistrict] = useState("");
   const [street, setStreet] = useState("");
   const [building, setBuilding] = useState("");
   const [floor, setFloor] = useState("");
@@ -32,7 +33,7 @@ export default function CheckoutPage() {
   const [showAddressInput, setShowAddressInput] = useState(false);
 
   const combineAddress = () => {
-    const parts = [city, street, building, floor, flat].filter(Boolean);
+    const parts = [city, district, street, building, floor, flat].filter(Boolean);
     return parts.join(", ");
   };
 
@@ -45,10 +46,11 @@ export default function CheckoutPage() {
         setItems(cartRes.data.items || []);
         setTotal(cartRes.data.total || "0.00");
         const p = profileRes.data;
-        if (p.address_city || p.address_street || p.address_building || p.address_floor || p.address_flat) {
-          const addr = { city: p.address_city || "", street: p.address_street || "", building: p.address_building || "", floor: p.address_floor || "", flat: p.address_flat || "" };
+        if (p.address_city || p.address_district || p.address_street || p.address_building || p.address_floor || p.address_flat) {
+          const addr = { city: p.address_city || "", district: p.address_district || "", street: p.address_street || "", building: p.address_building || "", floor: p.address_floor || "", flat: p.address_flat || "" };
           setSavedAddr(addr);
           setCity(addr.city);
+          setDistrict(addr.district);
           setStreet(addr.street);
           setBuilding(addr.building);
           setFloor(addr.floor);
@@ -80,6 +82,7 @@ export default function CheckoutPage() {
   const useSaved = () => {
     if (savedAddr) {
       setCity(savedAddr.city);
+      setDistrict(savedAddr.district);
       setStreet(savedAddr.street);
       setBuilding(savedAddr.building);
       setFloor(savedAddr.floor);
@@ -89,7 +92,7 @@ export default function CheckoutPage() {
     }
   };
 
-  const fieldsFilled = city || street || building || floor || flat;
+  const fieldsFilled = city || district || street || building || floor || flat;
 
   if (loading) return <div className="flex justify-center py-16"><Spinner className="h-8 w-8" /></div>;
 
@@ -121,7 +124,7 @@ export default function CheckoutPage() {
                     <div className="flex-1">
                       <p className="text-sm font-medium text-text-primary">{t("checkout.use_saved")}</p>
                       <p className="text-sm text-text-secondary mt-1">
-                        {[savedAddr.city, savedAddr.street, savedAddr.building, savedAddr.floor, savedAddr.flat].filter(Boolean).join(", ")}
+                        {[savedAddr.city, savedAddr.district, savedAddr.street, savedAddr.building, savedAddr.floor, savedAddr.flat].filter(Boolean).join(", ")}
                       </p>
                     </div>
                   </div>
@@ -163,6 +166,11 @@ export default function CheckoutPage() {
                     placeholder={t("checkout.address_city")}
                     value={city}
                     onChange={(e) => { setCity(e.target.value); setAddressError(""); }}
+                  />
+                  <Input
+                    placeholder={t("checkout.address_district")}
+                    value={district}
+                    onChange={(e) => { setDistrict(e.target.value); setAddressError(""); }}
                   />
                   <Input
                     placeholder={t("checkout.address_street")}

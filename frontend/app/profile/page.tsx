@@ -19,6 +19,7 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [phone, setPhone] = useState("");
   const [addressCity, setAddressCity] = useState("");
+  const [addressDistrict, setAddressDistrict] = useState("");
   const [addressStreet, setAddressStreet] = useState("");
   const [addressBuilding, setAddressBuilding] = useState("");
   const [addressFloor, setAddressFloor] = useState("");
@@ -29,6 +30,7 @@ export default function ProfilePage() {
       setProfile(data);
       setPhone(data.phone || "");
       setAddressCity(data.address_city || "");
+      setAddressDistrict(data.address_district || "");
       setAddressStreet(data.address_street || "");
       setAddressBuilding(data.address_building || "");
       setAddressFloor(data.address_floor || "");
@@ -43,6 +45,7 @@ export default function ProfilePage() {
       await api.put("/api/users/profile/", {
         phone,
         address_city: addressCity,
+        address_district: addressDistrict,
         address_street: addressStreet,
         address_building: addressBuilding,
         address_floor: addressFloor,
@@ -94,6 +97,7 @@ export default function ProfilePage() {
             <Input label={t("profile.phone")} value={phone} onChange={(e) => setPhone(e.target.value)} />
             <div className="grid grid-cols-2 gap-3">
               <Input label={t("profile.address_city")} value={addressCity} onChange={(e) => setAddressCity(e.target.value)} />
+              <Input label={t("profile.address_district")} value={addressDistrict} onChange={(e) => setAddressDistrict(e.target.value)} />
               <Input label={t("profile.address_street")} value={addressStreet} onChange={(e) => setAddressStreet(e.target.value)} />
               <Input label={t("profile.address_building")} value={addressBuilding} onChange={(e) => setAddressBuilding(e.target.value)} />
               <Input label={t("profile.address_floor")} value={addressFloor} onChange={(e) => setAddressFloor(e.target.value)} />
