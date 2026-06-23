@@ -7,9 +7,9 @@ import Card from "@/components/ui/Card";
 import Spinner from "@/components/ui/Spinner";
 
 interface DashboardStats {
-  total_revenue: string; total_orders: number; total_users: number;
+  total_orders: number; total_users: number;
   total_menu_items: number; total_categories: number; pending_orders: number;
-  revenue_today: string; orders_today: number; orders_by_status: Record<string, number>;
+  orders_today: number; orders_by_status: Record<string, number>;
 }
 
 export default function AdminDashboardPage() {
@@ -28,10 +28,8 @@ export default function AdminDashboardPage() {
   if (!stats) return <div className="text-center py-16 text-text-secondary">{t("admin.denied")}</div>;
 
   const statCards = [
-    { label: t("admin.total_revenue"), value: `$${parseFloat(stats.total_revenue).toLocaleString()}`, color: "text-green-600", bg: "bg-green-50" },
     { label: t("admin.total_orders"), value: stats.total_orders.toLocaleString(), color: "text-blue-600", bg: "bg-blue-50" },
     { label: t("admin.pending_orders"), value: stats.pending_orders.toLocaleString(), color: "text-yellow-600", bg: "bg-yellow-50" },
-    { label: t("admin.revenue_today"), value: `$${parseFloat(stats.revenue_today).toFixed(2)}`, color: "text-primary-600", bg: "bg-primary-50" },
     { label: t("admin.orders_today"), value: stats.orders_today.toLocaleString(), color: "text-purple-600", bg: "bg-purple-50" },
     { label: t("admin.total_users"), value: stats.total_users.toLocaleString(), color: "text-indigo-600", bg: "bg-indigo-50" },
     { label: t("admin.menu_items"), value: stats.total_menu_items.toLocaleString(), color: "text-cyan-600", bg: "bg-cyan-50" },

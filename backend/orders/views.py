@@ -6,6 +6,7 @@ from django.db import models
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 from rest_framework import generics, permissions, status
+from rest_framework.views import APIView
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from menu.models import MenuItem
@@ -13,11 +14,12 @@ from .models import Cart, CartItem, Order, OrderItem
 from .serializers import (
     AddToCartSerializer,
     CartSerializer,
+    CompletePaymentSerializer,
     CreateOrderSerializer,
     OrderSerializer,
     UpdateCartItemSerializer,
 )
-from .payment import create_payment_intent
+from .payment import create_payment_intent, retrieve_payment_intent
 from .serializers import OrderStatusUpdateSerializer
 
 logger = logging.getLogger(__name__)
@@ -212,6 +214,77 @@ class PaymentIntentView(generics.CreateAPIView):
         )
 
 
+class CompletePaymentView(generics.CreateAPIView):
+    serializer_class = CompletePaymentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        try:
+            order = Order.objects.get(id=kwargs["pk"], user=request.user)
+        except Order.DoesNotExist:
+            return Response(
+                {"detail": "Order not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if order.payment_method != Order.PaymentMethod.ONLINE:
+            return Response(
+                {"detail": "Payment method is not online payment."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        payment_intent_id = serializer.validated_data["payment_intent_id"]
+
+        if order.transaction_id and payment_intent_id != order.transaction_id:
+            return Response(
+                {"detail": "Payment intent does not match this order."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        intent = retrieve_payment_intent(payment_intent_id)
+        if not intent:
+            return Response(
+                {"detail": "Payment could not be verified."},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+
+        metadata_order_id = str(intent.get("metadata", {}).get("order_id", ""))
+        if metadata_order_id and metadata_order_id != str(order.id):
+            return Response(
+                {"detail": "Payment intent belongs to a different order."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        expected_amount = int(order.total_price * 100)
+        if intent.get("amount") != expected_amount:
+            return Response(
+                {"detail": "Payment amount does not match the order total."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if intent.get("status") != "succeeded":
+            if intent.get("status") in ["requires_payment_method", "canceled"]:
+                order.payment_status = Order.PaymentStatus.FAILED
+                order.save(update_fields=["payment_status", "updated_at"])
+            return Response(
+                {"detail": "Payment has not succeeded."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        order.payment_status = Order.PaymentStatus.PAID
+        order.transaction_id = payment_intent_id
+        order.save(update_fields=["payment_status", "transaction_id", "updated_at"])
+
+        try:
+            order.set_status(Order.Status.CONFIRMED, note="Payment confirmed")
+        except ValueError:
+            pass
+
+        return Response(OrderSerializer(order).data)
+
+
 @csrf_exempt
 def stripe_webhook(request):
     payload = request.body
@@ -351,5 +424,35 @@ class CancelOrderView(generics.CreateAPIView):
                 )
             except Exception as e:
                 logger.warning("Failed to send cancellation email: %s", e)
+
+        return Response(OrderSerializer(order).data)
+
+
+class SimulatePaymentView(APIView):
+    """Dev-only endpoint to simulate a successful online payment for testing.
+
+    Only allowed when settings.DEBUG is True.
+    Marks the order as PAID and attempts to confirm the order.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk):
+        if not settings.DEBUG:
+            return Response({"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            order = Order.objects.get(id=pk, user=request.user)
+        except Order.DoesNotExist:
+            return Response({"detail": "Order not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        if order.payment_status == Order.PaymentStatus.PAID:
+            return Response({"detail": "Order already paid."}, status=status.HTTP_400_BAD_REQUEST)
+
+        order.payment_status = Order.PaymentStatus.PAID
+        order.save(update_fields=["payment_status", "updated_at"])
+        try:
+            order.set_status(Order.Status.CONFIRMED, note="Simulated payment (dev)")
+        except ValueError:
+            pass
 
         return Response(OrderSerializer(order).data)

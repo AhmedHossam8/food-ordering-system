@@ -2,8 +2,7 @@ from datetime import timedelta
 from decimal import Decimal
 
 from django.contrib.auth.models import User
-from django.db.models import Count, F, Sum
-from django.db.models.functions import TruncDay, TruncMonth, TruncWeek
+from django.db.models import Count, Sum
 from django.utils import timezone
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
@@ -28,27 +27,12 @@ class DashboardView(APIView):
         today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
 
         total_orders = Order.objects.count()
-        total_revenue = (
-            Order.objects.filter(
-                payment_status=Order.PaymentStatus.PAID,
-                status__in=[
-                    Order.Status.DELIVERED,
-                    Order.Status.READY,
-                    Order.Status.PREPARING,
-                    Order.Status.CONFIRMED,
-                ],
-            ).aggregate(total=Sum("total_price"))["total"] or Decimal("0.00")
-        )
+        # revenue removed from system
         total_users = User.objects.count()
         total_menu_items = MenuItem.objects.count()
         total_categories = Category.objects.count()
         pending_orders = Order.objects.filter(status=Order.Status.PENDING).count()
-        revenue_today = (
-            Order.objects.filter(
-                created_at__gte=today_start,
-                payment_status=Order.PaymentStatus.PAID,
-            ).aggregate(total=Sum("total_price"))["total"] or Decimal("0.00")
-        )
+        # revenue_today removed from system
         orders_today = Order.objects.filter(created_at__gte=today_start).count()
 
         orders_by_status = (
@@ -62,58 +46,18 @@ class DashboardView(APIView):
         recent_data = OrderSerializer(recent_orders, many=True).data
 
         return Response({
-            "total_revenue": total_revenue,
             "total_orders": total_orders,
             "total_users": total_users,
             "total_menu_items": total_menu_items,
             "total_categories": total_categories,
             "pending_orders": pending_orders,
-            "revenue_today": revenue_today,
             "orders_today": orders_today,
             "orders_by_status": status_counts,
             "recent_orders": recent_data,
         })
 
 
-class RevenueAnalyticsView(APIView):
-    permission_classes = [permissions.IsAuthenticated, IsStaffUser]
-
-    def get(self, request):
-        period = request.query_params.get("period", "daily")
-        days = int(request.query_params.get("days", "30"))
-
-        since = timezone.now() - timedelta(days=days)
-
-        orders = Order.objects.filter(
-            created_at__gte=since,
-            payment_status=Order.PaymentStatus.PAID,
-        )
-
-        if period == "monthly":
-            trunc_fn = TruncMonth("created_at")
-        elif period == "weekly":
-            trunc_fn = TruncWeek("created_at")
-        else:
-            trunc_fn = TruncDay("created_at")
-
-        data = (
-            orders.annotate(period=trunc_fn)
-            .values("period")
-            .annotate(
-                revenue=Sum("total_price"),
-                order_count=Count("id"),
-            )
-            .order_by("period")
-        )
-
-        return Response([
-            {
-                "period": entry["period"],
-                "revenue": entry["revenue"],
-                "order_count": entry["order_count"],
-            }
-            for entry in data
-        ])
+# Revenue analytics removed from system
 
 
 class TopItemsView(APIView):
@@ -138,7 +82,7 @@ class TopItemsView(APIView):
             )
             .annotate(
                 total_quantity=Sum("quantity"),
-                total_revenue=Sum(F("unit_price") * F("quantity")),
+                # total_revenue removed from system
                 order_count=Count("order", distinct=True),
             )
             .order_by("-total_quantity")[:limit]
@@ -151,7 +95,6 @@ class TopItemsView(APIView):
                 "category": entry["menu_item__category__name"],
                 "price": entry["menu_item__price"],
                 "total_quantity": entry["total_quantity"],
-                "total_revenue": entry["total_revenue"],
                 "order_count": entry["order_count"],
             }
             for entry in data

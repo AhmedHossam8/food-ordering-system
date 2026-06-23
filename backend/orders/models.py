@@ -141,6 +141,11 @@ class Order(models.Model):
             changed_by=user,
             note=note,
         )
+        # If order is delivered and payment method is COD, mark payment as paid
+        if new_status == self.Status.DELIVERED and self.payment_method == self.PaymentMethod.COD:
+            if self.payment_status != self.PaymentStatus.PAID:
+                self.payment_status = self.PaymentStatus.PAID
+                self.save(update_fields=["payment_status", "updated_at"])
 
 
 class OrderItem(models.Model):

@@ -43,12 +43,10 @@ class AdminDashboardTests(APITestCase):
         response = self.client.get("/api/admin/dashboard/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["total_orders"], 1)
-        self.assertEqual(response.data["total_revenue"], Decimal("19.98"))
         self.assertEqual(response.data["total_users"], 2)
         self.assertEqual(response.data["total_menu_items"], 1)
         self.assertEqual(response.data["total_categories"], 1)
         self.assertEqual(response.data["pending_orders"], 0)
-        self.assertIn("revenue_today", response.data)
         self.assertIn("orders_today", response.data)
         self.assertIn("orders_by_status", response.data)
         self.assertIn("recent_orders", response.data)
@@ -73,64 +71,7 @@ class AdminDashboardTests(APITestCase):
         self.assertEqual(response.data["orders_by_status"]["confirmed"], 1)
 
 
-class RevenueAnalyticsTests(APITestCase):
-    def setUp(self):
-        self.staff = User.objects.create_user(
-            username="staff", password="Staff123", is_staff=True,
-        )
-        self.user = User.objects.create_user(
-            username="user", password="User123",
-        )
-
-    def test_revenue_requires_staff(self):
-        self.client.force_authenticate(user=self.user)
-        response = self.client.get("/api/admin/analytics/revenue/")
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-    def test_revenue_daily_default(self):
-        self.client.force_authenticate(user=self.staff)
-        Order.objects.create(
-            total_price=100, payment_status=Order.PaymentStatus.PAID,
-        )
-        response = self.client.get("/api/admin/analytics/revenue/")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIsInstance(response.data, list)
-        self.assertGreaterEqual(len(response.data), 1)
-        self.assertIn("period", response.data[0])
-        self.assertIn("revenue", response.data[0])
-        self.assertIn("order_count", response.data[0])
-
-    def test_revenue_weekly(self):
-        self.client.force_authenticate(user=self.staff)
-        Order.objects.create(
-            total_price=50, payment_status=Order.PaymentStatus.PAID,
-        )
-        response = self.client.get("/api/admin/analytics/revenue/?period=weekly")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIsInstance(response.data, list)
-
-    def test_revenue_monthly(self):
-        self.client.force_authenticate(user=self.staff)
-        Order.objects.create(
-            total_price=200, payment_status=Order.PaymentStatus.PAID,
-        )
-        response = self.client.get(
-            "/api/admin/analytics/revenue/?period=monthly&days=90",
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIsInstance(response.data, list)
-
-    def test_revenue_only_paid_orders(self):
-        self.client.force_authenticate(user=self.staff)
-        Order.objects.create(
-            total_price=50, payment_status=Order.PaymentStatus.PAID,
-        )
-        Order.objects.create(
-            total_price=30, payment_status=Order.PaymentStatus.PENDING,
-        )
-        response = self.client.get("/api/admin/analytics/revenue/")
-        total_revenue = sum(r["revenue"] for r in response.data)
-        self.assertEqual(total_revenue, 50)
+# Revenue analytics tests removed since revenue was removed from the system
 
 
 class TopItemsTests(APITestCase):
@@ -181,7 +122,6 @@ class TopItemsTests(APITestCase):
         self.assertIn("menu_item_id", item)
         self.assertIn("category", item)
         self.assertIn("price", item)
-        self.assertIn("total_revenue", item)
         self.assertIn("order_count", item)
 
     def test_top_items_limit_param(self):
