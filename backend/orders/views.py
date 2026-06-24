@@ -430,6 +430,10 @@ class CancelOrderView(generics.CreateAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        if order.payment_status == Order.PaymentStatus.PAID:
+            order.payment_status = Order.PaymentStatus.REFUNDED
+            order.save(update_fields=["payment_status", "updated_at"])
+
         for order_item in order.items.all():
             if order_item.menu_item.stock > 0:
                 MenuItem.objects.filter(pk=order_item.menu_item.pk).update(
