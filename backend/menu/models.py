@@ -28,7 +28,7 @@ class MenuItem(models.Model):
     description = models.TextField(_("description"), blank=True)
     description_ar = models.TextField(_("description (Arabic)"), blank=True)
     price = models.DecimalField(_("price"), max_digits=10, decimal_places=2)
-    image = models.ImageField(_("image"), upload_to="menu_items/", blank=True, null=True)
+    image = models.URLField(_("image URL"), max_length=500, blank=True, default="")
     is_available = models.BooleanField(_("is available"), default=True)
     stock = models.PositiveIntegerField(_("stock"), default=0,
         help_text=_("0 = unlimited/unmanaged"))
