@@ -26,34 +26,36 @@ from .serializers import OrderStatusUpdateSerializer
 logger = logging.getLogger(__name__)
 
 
-def get_cart(request):
+def get_or_create_cart(request):
     if request.user.is_authenticated:
-        cart, _ = Cart.objects.get_or_create(user=request.user)
-    else:
-        if not request.session.session_key:
-            request.session.save()
-        cart, _ = Cart.objects.get_or_create(
-            session_key=request.session.session_key,
-            defaults={"user": None},
-        )
-    cart = Cart.objects.prefetch_related(
+        return Cart.objects.get_or_create(user=request.user)
+    if not request.session.session_key:
+        request.session.save()
+    return Cart.objects.get_or_create(
+        session_key=request.session.session_key,
+        defaults={"user": None},
+    )
+
+
+def get_cart_with_items(request):
+    cart, _ = get_or_create_cart(request)
+    return Cart.objects.prefetch_related(
         Prefetch('items', queryset=CartItem.objects.select_related('menu_item'))
     ).get(pk=cart.pk)
-    return cart
 
 
 class CartView(generics.RetrieveAPIView):
     serializer_class = CartSerializer
 
     def get_object(self):
-        return get_cart(self.request)
+        return get_cart_with_items(self.request)
 
 
 class AddToCartView(generics.CreateAPIView):
     serializer_class = AddToCartSerializer
 
     def perform_create(self, serializer):
-        cart = get_cart(self.request)
+        cart, _ = get_or_create_cart(self.request)
         serializer.save(cart=cart)
 
 
@@ -61,26 +63,26 @@ class UpdateCartItemView(generics.UpdateAPIView):
     serializer_class = UpdateCartItemSerializer
 
     def get_queryset(self):
-        cart = get_cart(self.request)
+        cart, _ = get_or_create_cart(self.request)
         return CartItem.objects.filter(cart=cart)
 
 
 class RemoveCartItemView(generics.DestroyAPIView):
     def get_queryset(self):
-        cart = get_cart(self.request)
+        cart, _ = get_or_create_cart(self.request)
         return CartItem.objects.filter(cart=cart)
 
 
 class ClearCartView(APIView):
     def delete(self, request):
-        cart = get_cart(request)
+        cart, _ = get_or_create_cart(request)
         cart.items.all().delete()
         return Response({"detail": "Cart cleared."}, status=status.HTTP_204_NO_CONTENT)
 
 
 class CartCountView(APIView):
     def get(self, request):
-        cart = get_cart(request)
+        cart, _ = get_or_create_cart(request)
         total = sum(item.quantity for item in cart.items.all())
         return Response({"count": total})
 

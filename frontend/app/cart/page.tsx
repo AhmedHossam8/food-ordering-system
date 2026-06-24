@@ -49,6 +49,7 @@ export default function CartPage() {
     setTotal(recalcTotal(next));
     try {
       await api.patch(`/api/orders/cart/items/${itemId}/`, { quantity: qty });
+      api.get("/api/orders/cart/").catch(() => {});
     } catch {
       setItems(prev);
       setTotal(recalcTotal(prev));
@@ -67,6 +68,7 @@ export default function CartPage() {
       await api.delete(`/api/orders/cart/items/${itemId}/remove/`);
       toast.success(t("cart.removed"));
       useAuthStore.getState().refreshCartCount();
+      api.get("/api/orders/cart/").catch(() => {});
     } catch {
       setItems(prev);
       setTotal(recalcTotal(prev));
@@ -105,6 +107,7 @@ export default function CartPage() {
           try {
             await api.delete("/api/orders/cart/clear/");
             useAuthStore.getState().refreshCartCount();
+            api.get("/api/orders/cart/").catch(() => {});
             toast.success(t("cart.cleared"));
           } catch {
             setItems(prev);
