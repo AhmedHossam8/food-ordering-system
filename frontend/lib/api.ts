@@ -12,7 +12,7 @@ api.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
     const url = config.url || "";
 
-    const authPaths = ["/api/admin/", "/api/orders/", "/api/users/profile/", "/api/users/password-change/", "/api/users/delete-account/", "/api/users/language/"];
+    const authPaths = ["/api/admin/", "/api/menu/", "/api/orders/", "/api/users/profile/", "/api/users/password-change/", "/api/users/delete-account/", "/api/users/language/"];
     if (authPaths.some((p) => url.includes(p))) {
       const token = localStorage.getItem("access_token");
       if (token) {
