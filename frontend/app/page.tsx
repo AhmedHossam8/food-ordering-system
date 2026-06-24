@@ -5,21 +5,6 @@ import Link from "next/link";
 import api from "@/lib/api";
 import { useLanguage } from "@/lib/language";
 import { useAuthStore } from "@/lib/store";
-import { formatPrice } from "@/lib/utils";
-import toast from "react-hot-toast";
-import Card from "@/components/ui/Card";
-import Spinner from "@/components/ui/Spinner";
-
-interface MenuItem {
-  id: number;
-  name: string;
-  name_localized?: string;
-  price: string;
-  category_name: string;
-  description: string;
-  description_localized?: string;
-  image: string | null;
-}
 
 interface Category {
   id: number;
@@ -32,13 +17,10 @@ export default function HomePage() {
   // Hydration safety (CRITICAL FIX)
   // ---------------------------
   const [mounted, setMounted] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   const user = useAuthStore((s) => s.user);
   const { lang, t } = useLanguage();
-
-  const [featured, setFeatured] = useState<MenuItem[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
     setMounted(true);
@@ -46,27 +28,9 @@ export default function HomePage() {
 
   useEffect(() => {
     if (!mounted) return;
-
-    const fetchData = async () => {
-      try {
-        const [itemsRes, catsRes] = await Promise.all([
-          api.get("/api/menu/items/", { params: { available: "true" } }),
-          api.get("/api/menu/categories/"),
-        ]);
-
-        const items = itemsRes.data.results || itemsRes.data;
-        const cats = catsRes.data.results || catsRes.data;
-
-        setFeatured(items.slice(0, 6));
-        setCategories(cats);
-      } catch {
-        toast.error(t("home.load_error"));
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+    api.get("/api/menu/categories/")
+      .then(({ data }) => setCategories(data.results || data))
+      .catch(() => {});
   }, [mounted, lang]);
 
   // Prevent hydration mismatch completely
@@ -127,55 +91,6 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* Featured */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="mb-8">
-          <h2 className="text-2xl md:text-3xl font-bold">
-            {t("home.featured_title")}
-          </h2>
-        </div>
-
-        {loading ? (
-          <div className="flex justify-center py-12">
-            <Spinner />
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featured.map((item) => (
-              <Card key={item.id}>
-                <div className="h-44 bg-gray-100 flex items-center justify-center">
-                  {item.image ? (
-                    <img
-                      src={item.image}
-                      alt={item.name_localized || item.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-4xl">🍽️</span>
-                  )}
-                </div>
-
-                <div className="p-4">
-                  <h3 className="text-lg font-semibold">{item.name_localized || item.name}</h3>
-                  <p className="text-sm text-gray-500 line-clamp-2">
-                    {item.description_localized || item.description}
-                  </p>
-
-                  <div className="mt-4 flex justify-between items-center">
-                    <span className="font-bold text-primary-600">
-                      {formatPrice(item.price, lang)}
-                    </span>
-
-                    <Link href="/menu" className="text-sm text-primary-600">
-                      Order
-                    </Link>
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
-        )}
-      </section>
     </div>
   );
 }
