@@ -105,18 +105,29 @@ else:
         db_url = f"postgresql://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}"
     parsed = urlparse.urlparse(db_url)
     qs = urlparse.parse_qs(parsed.query)
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': parsed.path.lstrip('/'),
-            'USER': parsed.username,
-            'PASSWORD': parsed.password,
-            'HOST': parsed.hostname,
-            'PORT': parsed.port or '',
-        }
+    scheme = parsed.scheme or "postgresql"
+    engines = {
+        "postgresql": "django.db.backends.postgresql",
+        "mysql": "django.db.backends.mysql",
+        "sqlite": "django.db.backends.sqlite3",
     }
+    engine = engines.get(scheme, "django.db.backends.postgresql")
+    db_config = {
+        "ENGINE": engine,
+        "NAME": parsed.path.lstrip("/") if engine != "django.db.backends.sqlite3" else parsed.path.lstrip("/") or "db.sqlite3",
+        "USER": parsed.username,
+        "PASSWORD": parsed.password,
+        "HOST": parsed.hostname,
+        "PORT": parsed.port or "",
+    }
+    if engine == "django.db.backends.sqlite3":
+        db_config.pop("USER", None)
+        db_config.pop("PASSWORD", None)
+        db_config.pop("HOST", None)
+        db_config.pop("PORT", None)
+    DATABASES = {"default": db_config}
     if qs:
-        DATABASES['default']['OPTIONS'] = {k: qs[k][0] for k in qs}
+        DATABASES["default"]["OPTIONS"] = {k: qs[k][0] for k in qs}
 
 
 # Password validation

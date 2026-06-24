@@ -7,6 +7,7 @@ sqlparse==0.5.5
 stripe
 python-dotenv==1.1.0
 psycopg2-binary==2.9.10
+mysqlclient==2.2.7
 Pillow==11.2.1
 django-cors-headers==4.7.0
 drf-spectacular
