@@ -10,8 +10,8 @@ import Spinner from "@/components/ui/Spinner";
 import Modal from "@/components/ui/Modal";
 
 interface MenuItem {
-  id: number; category: number; category_name: string; category_name_localized?: string;
-  name: string; name_ar: string; name_localized?: string;
+  id: number; category: number; category_name: string;
+  name: string; name_ar: string;
   description: string; description_ar: string;
   price: string; image: string | null;
   is_available: boolean; stock: number;
@@ -153,7 +153,7 @@ export default function AdminMenuPage() {
             <tbody className="divide-y divide-border">
               {items.map((item) => (
                 <tr key={item.id} className="hover:bg-surface-hover transition-colors">
-                  <td className="py-3 px-4 font-medium">{item.name_localized || item.name}</td>
+                  <td className="py-3 px-4 font-medium">{item.name}</td>
                   <td className="py-3 px-4 text-text-secondary">{item.name_ar || "\u2014"}</td>
                   <td className="py-3 px-4 text-text-secondary">{item.category_name}</td>
                   <td className="py-3 px-4 text-end font-medium">${item.price}</td>
@@ -194,7 +194,7 @@ export default function AdminMenuPage() {
             >
               <option value={0} disabled>Select...</option>
               {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>{cat.name_localized || cat.name}</option>
+                <option key={cat.id} value={cat.id}>{cat.name}</option>
               ))}
             </select>
           </div>
