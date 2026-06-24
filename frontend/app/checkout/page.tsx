@@ -1,7 +1,5 @@
 "use client";
 import { useEffect, useState } from "react";
-import { loadStripe } from "@stripe/stripe-js";
-import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
 import { useLanguage } from "@/lib/language";
@@ -42,10 +40,6 @@ interface OrderResponse {
   id: number;
 }
 
-interface PaymentIntentResponse {
-  client_secret: string;
-}
-
 function apiErrorMessage(error: unknown, fallback: string) {
   if (typeof error === "object" && error && "response" in error) {
     const apiError = error as { response?: { data?: { detail?: string } } };
@@ -54,66 +48,93 @@ function apiErrorMessage(error: unknown, fallback: string) {
   return fallback;
 }
 
-function PaymentForm({
-  clientSecret,
+function MockPaymentForm({
   orderId,
   t,
+  onComplete,
 }: {
-  clientSecret: string;
   orderId: number;
-  t: (key: string) => string;
+  t: (key: string, vars?: Record<string, string | number>) => string;
+  onComplete: () => void;
 }) {
-  const stripe = useStripe();
-  const elements = useElements();
   const [paying, setPaying] = useState(false);
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardExpiry, setCardExpiry] = useState("");
+  const [cardCvc, setCardCvc] = useState("");
+
+  const formatCardNumber = (value: string) => {
+    const digits = value.replace(/\D/g, "").slice(0, 16);
+    return digits.replace(/(\d{4})(?=\d)/g, "$1 ");
+  };
+
+  const formatExpiry = (value: string) => {
+    const digits = value.replace(/\D/g, "").slice(0, 4);
+    if (digits.length > 2) return digits.slice(0, 2) + "/" + digits.slice(2);
+    return digits;
+  };
 
   const handlePay = async () => {
-    if (!stripe || !elements) return;
     setPaying(true);
-
-    const card = elements.getElement(CardElement);
-    if (!card) {
-      toast.error(t("checkout.error"));
-      setPaying(false);
-      return;
-    }
-
-    const res = await stripe.confirmCardPayment(clientSecret, {
-      payment_method: { card },
-    });
-
-    if (res.error) {
-      toast.error(res.error.message || t("checkout.error"));
-      setPaying(false);
-      return;
-    }
-
-    if (res.paymentIntent?.status !== "succeeded") {
-      toast.error(t("checkout.payment_pending"));
-      setPaying(false);
-      return;
-    }
-
+    await new Promise((r) => setTimeout(r, 1500));
     try {
-      await api.post(`/api/orders/${orderId}/complete-payment/`, {
-        payment_intent_id: res.paymentIntent.id,
-      });
+      await api.post(`/api/orders/${orderId}/simulate-payment/`);
       toast.success(t("checkout.success"));
-      window.location.href = `/orders/${orderId}`;
+      onComplete();
     } catch (e: unknown) {
-      toast.error(apiErrorMessage(e, t("checkout.verify_error")));
+      toast.error(apiErrorMessage(e, t("checkout.error")));
       setPaying(false);
     }
   };
 
   return (
-    <Card className="p-6">
+    <Card className="p-6 sticky top-24">
       <h2 className="text-lg font-semibold mb-4">{t("checkout.online")}</h2>
-      <div className="mb-4 rounded-lg border border-border bg-white p-3">
-        <CardElement options={{ hidePostalCode: true }} />
+
+      <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4 text-xs text-amber-800 leading-relaxed">
+        {t("checkout.demo_notice")}
       </div>
-      <Button className="w-full" onClick={handlePay} loading={paying} disabled={!stripe}>
-        {t("checkout.pay_now")}
+
+      <div className="space-y-3 mb-4">
+        <div>
+          <label className="block text-xs text-text-secondary mb-1">{t("checkout.card_number")}</label>
+          <input
+            type="text"
+            value={cardNumber}
+            onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
+            placeholder="4242 4242 4242 4242"
+            className="w-full rounded-lg border border-border bg-white p-3 font-mono text-sm outline-none focus:border-primary-500"
+            disabled={paying}
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs text-text-secondary mb-1">{t("checkout.expiry")}</label>
+            <input
+              type="text"
+              value={cardExpiry}
+              onChange={(e) => setCardExpiry(formatExpiry(e.target.value))}
+              placeholder="MM/YY"
+              className="w-full rounded-lg border border-border bg-white p-3 font-mono text-sm outline-none focus:border-primary-500"
+              disabled={paying}
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-text-secondary mb-1">{t("checkout.cvc")}</label>
+            <input
+              type="text"
+              value={cardCvc}
+              onChange={(e) => setCardCvc(e.target.value.replace(/\D/g, "").slice(0, 4))}
+              placeholder="123"
+              className="w-full rounded-lg border border-border bg-white p-3 font-mono text-sm outline-none focus:border-primary-500"
+              disabled={paying}
+            />
+          </div>
+        </div>
+        <p className="text-xs text-text-muted">{t("checkout.demo_fields_hint")}</p>
+      </div>
+
+      <Button className="w-full" onClick={handlePay} loading={paying}>
+        {paying ? t("checkout.processing") : t("checkout.pay_now")} — {t("checkout.mock_charge")}
       </Button>
     </Card>
   );
@@ -134,14 +155,10 @@ export default function CheckoutPage() {
   const [addressError, setAddressError] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [orderId, setOrderId] = useState<number | null>(null);
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [savedAddr, setSavedAddr] = useState<SavedAddr | null>(null);
   const [showAddressInput, setShowAddressInput] = useState(false);
-
-  // Stripe publishable key (must be set as NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
-  const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "";
-  const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
   const combineAddress = () => {
     const parts = [city, district, street, building, floor, flat].filter(Boolean);
@@ -178,10 +195,6 @@ export default function CheckoutPage() {
       setAddressError(t("checkout.enter_address"));
       return;
     }
-    if (paymentMethod === "online" && !stripeKey) {
-      toast.error(t("checkout.not_configured"));
-      return;
-    }
     setSubmitting(true);
     try {
       const { data } = await api.post<OrderResponse>("/api/orders/create/", {
@@ -189,13 +202,8 @@ export default function CheckoutPage() {
         delivery_address,
       });
       if (paymentMethod === "online") {
-        try {
-          const piRes = await api.post<PaymentIntentResponse>(`/api/orders/${data.id}/payment-intent/`);
-          setClientSecret(piRes.data.client_secret);
-          setOrderId(data.id);
-        } catch (e: unknown) {
-          toast.error(apiErrorMessage(e, t("checkout.error")));
-        }
+        setOrderId(data.id);
+        setShowPaymentForm(true);
       } else {
         toast.success(t("checkout.success"));
         router.push(`/orders/${data.id}`);
@@ -341,25 +349,21 @@ export default function CheckoutPage() {
                 </div>
               </label>
               <label className={`flex items-center gap-3 p-4 border rounded-xl cursor-pointer transition-colors ${paymentMethod === "online" ? "border-primary-500 bg-primary-50" : "border-border hover:bg-surface-hover"}`}>
-                <input type="radio" name="payment" value="online" checked={paymentMethod === "online"} onChange={() => setPaymentMethod("online")} className="accent-primary-600" disabled={!stripeKey} />
+                <input type="radio" name="payment" value="online" checked={paymentMethod === "online"} onChange={() => setPaymentMethod("online")} className="accent-primary-600" />
                 <div>
                   <p className="font-medium text-text-primary">{t("checkout.online")}</p>
                   <p className="text-sm text-text-secondary">{t("checkout.online_desc")}</p>
                 </div>
               </label>
-              {!stripeKey && (
-                <p className="text-xs text-error">{t("checkout.not_configured")}</p>
-              )}
+              <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg p-2">{t("checkout.demo_note")}</p>
             </div>
           </Card>
         </div>
 
         {/* Right - Summary or Payment Form */}
         <div className="lg:col-span-2">
-          {clientSecret && orderId && stripePromise ? (
-            <Elements stripe={stripePromise} options={{ clientSecret }}>
-              <PaymentForm clientSecret={clientSecret} orderId={orderId} t={t} />
-            </Elements>
+          {showPaymentForm && orderId ? (
+            <MockPaymentForm orderId={orderId} t={t} onComplete={() => router.push(`/orders/${orderId}`)} />
           ) : (
             <Card className="p-6 sticky top-24">
               <h2 className="text-lg font-semibold mb-4">{t("checkout.summary_title")}</h2>

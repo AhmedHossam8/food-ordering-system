@@ -452,17 +452,14 @@ class CancelOrderView(generics.CreateAPIView):
 
 
 class SimulatePaymentView(APIView):
-    """Dev-only endpoint to simulate a successful online payment for testing.
+    """Simulate a successful online payment (placeholder for demo purposes).
 
-    Only allowed when settings.DEBUG is True.
-    Marks the order as PAID and attempts to confirm the order.
+    Real payment processing requires valid Stripe credentials.
+    This endpoint is a placeholder to demonstrate the payment flow.
     """
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, pk):
-        if not settings.DEBUG:
-            return Response({"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN)
-
         try:
             order = Order.objects.get(id=pk, user=request.user)
         except Order.DoesNotExist:
@@ -472,9 +469,10 @@ class SimulatePaymentView(APIView):
             return Response({"detail": "Order already paid."}, status=status.HTTP_400_BAD_REQUEST)
 
         order.payment_status = Order.PaymentStatus.PAID
-        order.save(update_fields=["payment_status", "updated_at"])
+        order.transaction_id = f"MOCK_{order.id}_{order.created_at.strftime('%Y%m%d%H%M%S')}"
+        order.save(update_fields=["payment_status", "transaction_id", "updated_at"])
         try:
-            order.set_status(Order.Status.CONFIRMED, note="Simulated payment (dev)")
+            order.set_status(Order.Status.CONFIRMED, note="Simulated payment (placeholder)")
         except ValueError:
             pass
 
