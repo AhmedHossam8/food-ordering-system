@@ -61,13 +61,14 @@ export default function AdminCategoriesPage() {
     setSaving(true);
     try {
       if (editing) {
-        await api.put(`/api/menu/categories/${editing.id}/`, form);
+        const { data } = await api.put(`/api/menu/categories/${editing.id}/`, form);
+        setCategories((prev) => prev.map((c) => (c.id === editing.id ? { ...c, ...data } : c)));
       } else {
-        await api.post("/api/menu/categories/", form);
+        const { data } = await api.post("/api/menu/categories/", form);
+        setCategories((prev) => [...prev, data]);
       }
       setModalOpen(false);
       toast.success(editing ? t("admin_cat.updated") : t("admin_cat.created"));
-      fetchCategories();
     } catch (e: unknown) {
       const msg = (e as any)?.response?.data?.name?.[0] || (e as any)?.response?.data?.detail || t("admin_cat.save_error");
       toast.error(msg);

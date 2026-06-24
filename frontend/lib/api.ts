@@ -50,8 +50,18 @@ api.interceptors.request.use((config) => {
 
 api.interceptors.response.use(
   (response) => {
+    const method = (response.config.method || "").toUpperCase();
+    // Invalidate cache after mutations (race-safe: done after server confirmed)
+    if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
+      const url = response.config.url || "";
+      invalidateCache("/api/menu/");
+      if (url.includes("/api/orders/") && !url.includes("/cart/")) {
+        invalidateCache("/api/orders/");
+      }
+      invalidateCache("/api/orders/cart/");
+    }
     // Cache successful GET responses
-    if (response.config.method === "get" || response.config.method === "GET") {
+    if (method === "GET") {
       const key = getCacheKey("get", response.config.url || "", response.config.params);
       setCache(key, response.data);
     }
