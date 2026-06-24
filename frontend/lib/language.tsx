@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { translations } from "./translations";
 
 interface LanguageContextType {
@@ -37,7 +37,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     setLang(lang === "en" ? "ar" : "en");
   };
 
-  const t = (key: string, vars?: Record<string, string | number>): string => {
+  const t = useCallback((key: string, vars?: Record<string, string | number>): string => {
     const dict = lang === "ar" ? translations.ar : translations.en;
     let val = dict[key];
     if (!val) {
@@ -49,7 +49,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       }
     }
     return val;
-  };
+  }, [lang]);
 
   return (
     <LanguageContext.Provider value={{ lang, toggleLang, setLang, t }}>

@@ -1,15 +1,13 @@
 "use client";
-import { Suspense, useEffect, useState, useCallback } from "react";
+import { Suspense, useEffect, useState, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import api from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
 import { useLanguage } from "@/lib/language";
 import { formatPrice } from "@/lib/utils";
-import toast from "react-hot-toast";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import Spinner from "@/components/ui/Spinner";
 import { EmptyState, PageSkeleton } from "@/components/ui/EmptyState";
 import Modal from "@/components/ui/Modal";
 
@@ -41,7 +39,6 @@ function MenuPageContent() {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<number | null>(null);
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
@@ -50,29 +47,27 @@ function MenuPageContent() {
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [quantity, setQuantity] = useState(1);
 
+  const fetched = useRef(false);
+
   useEffect(() => {
     const cat = searchParams.get("category");
     if (cat) setActiveCategory(Number(cat));
     api.get("/api/menu/categories/")
       .then(({ data }) => setCategories(data.results || data))
       .catch(() => {});
-  }, [searchParams, t]);
+  }, [searchParams]);
 
-  const fetchItems = useCallback(async () => {
-    setLoading(true);
-    try {
+  useEffect(() => {
       const params: Record<string, string> = {};
-      if (search) params.search = search;
       if (activeCategory) params.category = String(activeCategory);
-      if (minPrice) params.min_price = minPrice;
-      if (maxPrice) params.max_price = maxPrice;
-      const { data } = await api.get("/api/menu/items/", { params });
-      setItems(data.results || data);
-    } catch { toast.error(t("menu.load_error")); }
-    finally { setLoading(false); }
-  }, [search, activeCategory, minPrice, maxPrice, t]);
-
-  useEffect(() => { fetchItems(); }, [fetchItems]);
+    if (minPrice) params.min_price = minPrice;
+    if (maxPrice) params.max_price = maxPrice;
+    if (!fetched.current) setLoading(true);
+    api.get("/api/menu/items/", { params })
+      .then(({ data }) => setItems(data.results || data))
+      .catch(() => {})
+      .finally(() => { fetched.current = true; setLoading(false); });
+  }, [activeCategory, minPrice, maxPrice]);
 
   const addToCart = async (menuItemId: number, qty: number) => {
     if (!isAuthed) { toast.error(t("menu.login_first")); return; }
@@ -104,18 +99,9 @@ function MenuPageContent() {
       {/* Filters */}
       {showFilters && (
         <div className="bg-surface-card border border-border rounded-xl p-4 mb-6 space-y-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <Input
-                placeholder={t("menu.search_placeholder")}
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-            <div className="flex gap-2">
-              <Input placeholder={t("menu.min_price")} value={minPrice} onChange={(e) => setMinPrice(e.target.value)} />
-              <Input placeholder={t("menu.max_price")} value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} />
-            </div>
+          <div className="flex gap-2">
+            <Input placeholder={t("menu.min_price")} value={minPrice} onChange={(e) => setMinPrice(e.target.value)} />
+            <Input placeholder={t("menu.max_price")} value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} />
           </div>
           {categories.length > 0 && (
             <div className="flex gap-2 flex-wrap">

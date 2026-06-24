@@ -84,37 +84,20 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-db_url = os.getenv('DATABASE_URL')
-if db_url:
-    parsed = urlparse.urlparse(db_url)
-    qs = urlparse.parse_qs(parsed.query)
-    options = {}
-    for key in ('sslmode', 'channel_binding', 'connect_timeout'):
-        if key in qs:
-            options[key] = qs[key][0]
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': parsed.path.lstrip('/'),
-            'USER': parsed.username,
-            'PASSWORD': parsed.password,
-            'HOST': parsed.hostname,
-            'PORT': parsed.port or '',
-        }
+parsed = urlparse.urlparse(os.environ['DATABASE_URL'])
+qs = urlparse.parse_qs(parsed.query)
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': parsed.path.lstrip('/'),
+        'USER': parsed.username,
+        'PASSWORD': parsed.password,
+        'HOST': parsed.hostname,
+        'PORT': parsed.port or '',
     }
-    if options:
-        DATABASES['default']['OPTIONS'] = options
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.postgresql'),
-            'NAME': os.getenv('DB_NAME', 'food_ordering'),
-            'USER': os.getenv('DB_USER', 'food_user'),
-            'PASSWORD': os.getenv('DB_PASSWORD'),
-            'HOST': os.getenv('DB_HOST', 'localhost'),
-            'PORT': os.getenv('DB_PORT', '5433'),
-        }
-    }
+}
+if qs:
+    DATABASES['default']['OPTIONS'] = {k: qs[k][0] for k in qs}
 
 
 import sys
