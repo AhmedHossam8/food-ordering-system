@@ -21,6 +21,10 @@ class Cart(models.Model):
     class Meta:
         verbose_name = _("cart")
         verbose_name_plural = _("carts")
+        indexes = [
+            models.Index(fields=["session_key"]),
+            models.Index(fields=["user", "session_key"]),
+        ]
 
     def __str__(self):
         return f"Cart #{self.id} ({self.user.username})"
@@ -110,6 +114,12 @@ class Order(models.Model):
         ordering = ["-created_at"]
         verbose_name = _("order")
         verbose_name_plural = _("orders")
+        indexes = [
+            models.Index(fields=["status"]),
+            models.Index(fields=["payment_status"]),
+            models.Index(fields=["created_at"]),
+            models.Index(fields=["user", "status"]),
+        ]
 
     def __str__(self):
         return f"Order #{self.id} ({self.status})"

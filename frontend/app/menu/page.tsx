@@ -10,6 +10,7 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { EmptyState, PageSkeleton } from "@/components/ui/EmptyState";
 import Modal from "@/components/ui/Modal";
+import toast from "react-hot-toast";
 
 export default function MenuPage() {
   return (

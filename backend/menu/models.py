@@ -39,6 +39,10 @@ class MenuItem(models.Model):
         ordering = ["category", "name"]
         verbose_name = _("menu item")
         verbose_name_plural = _("menu items")
+        indexes = [
+            models.Index(fields=["is_available"]),
+            models.Index(fields=["category", "is_available"]),
+        ]
 
     def __str__(self):
         return self.name

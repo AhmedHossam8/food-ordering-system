@@ -1,4 +1,6 @@
 from django.db.models import Q
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_control
 from rest_framework import permissions, viewsets
 from .models import Category, MenuItem
 from .serializers import CategorySerializer, MenuItemSerializer
@@ -11,12 +13,16 @@ class IsStaffOrReadOnly(permissions.BasePermission):
         return request.user and request.user.is_staff
 
 
+@method_decorator(cache_control(max_age=300, public=True), name="list")
+@method_decorator(cache_control(max_age=300, public=True), name="retrieve")
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsStaffOrReadOnly]
 
 
+@method_decorator(cache_control(max_age=300, public=True), name="list")
+@method_decorator(cache_control(max_age=300, public=True), name="retrieve")
 class MenuItemViewSet(viewsets.ModelViewSet):
     serializer_class = MenuItemSerializer
     permission_classes = [IsStaffOrReadOnly]
