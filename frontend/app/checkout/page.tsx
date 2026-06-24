@@ -50,10 +50,14 @@ function apiErrorMessage(error: unknown, fallback: string) {
 
 function MockPaymentForm({
   orderId,
+  total,
+  lang,
   t,
   onComplete,
 }: {
   orderId: number;
+  total: string;
+  lang: string;
   t: (key: string, vars?: Record<string, string | number>) => string;
   onComplete: () => void;
 }) {
@@ -134,7 +138,7 @@ function MockPaymentForm({
       </div>
 
       <Button className="w-full" onClick={handlePay} loading={paying}>
-        {paying ? t("checkout.processing") : t("checkout.pay_now")} — {t("checkout.mock_charge")}
+        {paying ? t("checkout.processing") : t("checkout.pay_now")} — {formatPrice(total, lang)}
       </Button>
     </Card>
   );
@@ -363,7 +367,7 @@ export default function CheckoutPage() {
         {/* Right - Summary or Payment Form */}
         <div className="lg:col-span-2">
           {showPaymentForm && orderId ? (
-            <MockPaymentForm orderId={orderId} t={t} onComplete={() => router.push(`/orders/${orderId}`)} />
+            <MockPaymentForm orderId={orderId} total={total} lang={lang} t={t} onComplete={() => router.push(`/orders/${orderId}`)} />
           ) : (
             <Card className="p-6 sticky top-24">
               <h2 className="text-lg font-semibold mb-4">{t("checkout.summary_title")}</h2>
