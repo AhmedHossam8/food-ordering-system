@@ -94,13 +94,14 @@ export default function AdminMenuPage() {
     try {
       const payload = { ...form, image: form.image || null };
       if (editing) {
-        await api.put(`/api/menu/items/${editing.id}/`, payload);
+        const { data } = await api.put(`/api/menu/items/${editing.id}/`, payload);
+        setItems((prev) => prev.map((i) => (i.id === editing.id ? { ...i, ...data } : i)));
       } else {
-        await api.post("/api/menu/items/", payload);
+        const { data } = await api.post("/api/menu/items/", payload);
+        setItems((prev) => [...prev, data]);
       }
       setModalOpen(false);
       toast.success(editing ? t("admin_menu.updated") : t("admin_menu.created"));
-      fetchItems();
     } catch (e: unknown) {
       const errData = (e as any)?.response?.data;
       const msg = errData?.name?.[0] || errData?.price?.[0] || errData?.category?.[0] || errData?.detail || t("admin_menu.save_error");
@@ -113,8 +114,8 @@ export default function AdminMenuPage() {
     if (!confirm(t("admin_menu.confirm_delete"))) return;
     try {
       await api.delete(`/api/menu/items/${id}/`);
+      setItems((prev) => prev.filter((i) => i.id !== id));
       toast.success(t("admin_menu.deleted"));
-      fetchItems();
     } catch { toast.error(t("admin_menu.delete_error")); }
   };
 
