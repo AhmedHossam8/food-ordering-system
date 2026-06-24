@@ -20,16 +20,25 @@ export default function AdminOrderDetailPage() {
   const [note, setNote] = useState("");
   const [updating, setUpdating] = useState(false);
 
+  const fetchOrder = () =>
+    api.get(`/api/admin/orders/${id}/`)
+      .then(({ data }) => { setOrder(data); setNewStatus(data.status); return data; })
+      .catch(() => { if (!order) { toast.error(t("admin_order.not_found")); router.push("/admin/orders"); } });
+
   useEffect(() => {
     if (!id) return;
-    api.get(`/api/admin/orders/${id}/`)
-      .then(({ data }) => {
-        setOrder(data);
-        setNewStatus(data.status);
-      })
-      .catch(() => { toast.error(t("admin_order.not_found")); router.push("/admin/orders"); })
-      .finally(() => setLoading(false));
-  }, [id, router, t]);
+    fetchOrder().finally(() => setLoading(false));
+  }, [id]);
+
+  useEffect(() => {
+    if (!id || loading) return;
+    const interval = setInterval(() => {
+      fetchOrder().then((data) => {
+        if (data && ["delivered", "cancelled"].includes(data.status)) clearInterval(interval);
+      });
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [id, loading]);
 
   const updateStatus = async () => {
     if (!newStatus || newStatus === order.status) return;

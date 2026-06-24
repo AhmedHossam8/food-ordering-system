@@ -31,13 +31,25 @@ export default function OrderDetailPage() {
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
 
+  const fetchOrder = () =>
+    api.get(`/api/orders/${id}/`)
+      .then(({ data }) => { setOrder(data); return data; })
+      .catch(() => { if (!order) { toast.error(t("order.not_found")); router.push("/orders"); } });
+
   useEffect(() => {
     if (!id) return;
-    api.get(`/api/orders/${id}/`)
-      .then(({ data }) => setOrder(data))
-      .catch(() => { toast.error(t("order.not_found")); router.push("/orders"); })
-      .finally(() => setLoading(false));
-  }, [id, router, t]);
+    fetchOrder().finally(() => setLoading(false));
+  }, [id]);
+
+  useEffect(() => {
+    if (!id || loading) return;
+    const interval = setInterval(() => {
+      fetchOrder().then((data) => {
+        if (data && ["delivered", "cancelled"].includes(data.status)) clearInterval(interval);
+      });
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [id, loading]);
 
   const cancelOrder = async () => {
     setCancelling(true);
