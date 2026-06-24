@@ -45,7 +45,7 @@ export default function AdminMenuPage() {
       if (query) params.search = query;
       const { data } = await api.get("/api/menu/items/", { params });
       setItems(data.results || data);
-    } catch {}
+    } catch { toast.error(t("admin_menu.load_error")); }
     finally { setLoading(false); }
   }, []);
 
@@ -53,7 +53,7 @@ export default function AdminMenuPage() {
     try {
       const { data } = await api.get("/api/menu/categories/");
       setCategories(data.results || data);
-    } catch {}
+    } catch { toast.error(t("admin_menu.cats_load_error")); }
   }, []);
 
   useEffect(() => { fetchCategories(); }, [lang]);

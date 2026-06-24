@@ -66,8 +66,20 @@ class TopItemsView(APIView):
     permission_classes = [permissions.IsAuthenticated, IsStaffUser]
 
     def get(self, request):
-        limit = int(request.query_params.get("limit", "10"))
-        days = int(request.query_params.get("days", "30"))
+        try:
+            limit = int(request.query_params.get("limit", "10"))
+        except (ValueError, TypeError):
+            return Response(
+                {"detail": "Invalid value for 'limit'. Must be an integer."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            days = int(request.query_params.get("days", "30"))
+        except (ValueError, TypeError):
+            return Response(
+                {"detail": "Invalid value for 'days'. Must be an integer."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         since = timezone.now() - timedelta(days=days) if days > 0 else None
 

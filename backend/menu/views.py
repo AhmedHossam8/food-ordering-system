@@ -1,7 +1,8 @@
 from django.db.models import Q
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_control
-from rest_framework import permissions, viewsets
+from rest_framework import permissions, viewsets, status
+from rest_framework.response import Response
 from .models import Category, MenuItem
 from .serializers import CategorySerializer, MenuItemSerializer
 
@@ -26,6 +27,19 @@ class CategoryViewSet(viewsets.ModelViewSet):
 class MenuItemViewSet(viewsets.ModelViewSet):
     serializer_class = MenuItemSerializer
     permission_classes = [IsStaffOrReadOnly]
+
+    def list(self, request, *args, **kwargs):
+        for param in ("min_price", "max_price"):
+            val = request.query_params.get(param)
+            if val is not None:
+                try:
+                    float(val)
+                except (TypeError, ValueError):
+                    return Response(
+                        {"detail": f"Invalid value for '{param}'. Must be a number."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+        return super().list(request, *args, **kwargs)
 
     def get_queryset(self):
         queryset = MenuItem.objects.select_related('category').all()

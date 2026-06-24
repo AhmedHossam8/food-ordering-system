@@ -56,7 +56,7 @@ function MenuPageContent() {
     if (cat) setActiveCategory(Number(cat));
     api.get("/api/menu/categories/")
       .then(({ data }) => setCategories(data.results || data))
-      .catch(() => {});
+      .catch(() => toast.error(t("menu.categories_load_error")));
   }, [searchParams, lang]);
 
   useEffect(() => {
@@ -66,7 +66,7 @@ function MenuPageContent() {
     if (maxPrice) params.max_price = maxPrice;
     api.get("/api/menu/items/", { params })
       .then(({ data }) => setItems(data.results || data))
-      .catch(() => {})
+      .catch(() => toast.error(t("menu.items_load_error")))
       .finally(() => { fetched.current = true; setLoading(false); });
   }, [activeCategory, minPrice, maxPrice, lang]);
 

@@ -47,6 +47,7 @@ const en: Record<string, string> = {
   "home.cta_logged_in_title": "Hungry?",
   "home.cta_logged_in_desc": "Browse our menu and place your order now.",
   "home.cta_logged_in_btn": "Browse Menu",
+  "home.load_error": "Failed to load homepage",
 
   /* Login */
   "login.title": "Welcome Back",
@@ -93,6 +94,8 @@ const en: Record<string, string> = {
   "menu.added_to_cart": "Added to cart!",
   "menu.add_failed": "Failed to add to cart",
   "menu.load_error": "Failed to load menu",
+  "menu.categories_load_error": "Failed to load categories",
+  "menu.items_load_error": "Failed to load items",
 
   /* Cart */
   "cart.title": "Your Cart",
@@ -164,6 +167,7 @@ const en: Record<string, string> = {
   "orders.all": "All",
   "orders.empty": "No orders found",
   "orders.browse": "Browse Menu",
+  "orders.load_error": "Failed to load orders",
 
   /* Order Detail */
   "order.cancel": "Cancel Order",
@@ -239,6 +243,7 @@ const en: Record<string, string> = {
   "admin.categories": "Categories",
   "admin.orders_by_status": "Orders by Status",
   "admin.denied": "Access denied or failed to load",
+  "admin.load_error": "Failed to load dashboard",
   "admin.manage_menu": "Manage Menu",
   "admin.manage_categories": "Manage Categories",
 
@@ -274,6 +279,8 @@ const en: Record<string, string> = {
   "admin_menu.save_error": "Failed to save item",
   "admin_menu.delete_error": "Failed to delete item",
   "admin_menu.created": "Item created successfully",
+  "admin_menu.load_error": "Failed to load menu items",
+  "admin_menu.cats_load_error": "Failed to load categories",
 
   /* Admin Categories */
   "admin_cat.title": "Categories",
@@ -304,6 +311,7 @@ const en: Record<string, string> = {
   "admin_cat.reorder_error": "Failed to reorder",
   "admin_cat.move_up": "Move up",
   "admin_cat.move_down": "Move down",
+  "admin_cat.load_error": "Failed to load categories",
 
   /* Admin Users */
   "admin_users.title": "Users",
@@ -321,6 +329,7 @@ const en: Record<string, string> = {
   "admin_users.delete_confirm": "Are you sure you want to delete this user?",
   "admin_users.deleted": "User deleted",
   "admin_users.cannot_delete_self": "You cannot delete yourself",
+  "admin_users.load_error": "Failed to load users",
 
   /* Admin Orders */
   "admin_orders.title": "Orders Management",
@@ -336,6 +345,7 @@ const en: Record<string, string> = {
   "admin_orders.total": "Total",
   "admin_orders.date": "Date",
   "admin_orders.view": "View",
+  "admin_orders.load_error": "Failed to load orders",
 
   /* Admin Order Detail */
   "admin_order.items": "Items",
@@ -415,6 +425,7 @@ const ar: Record<string, string> = {
   "home.cta_logged_in_title": "جائع؟",
   "home.cta_logged_in_desc": "تصفح قائمتنا واطلب الآن.",
   "home.cta_logged_in_btn": "تصفح القائمة",
+  "home.load_error": "فشل تحميل الصفحة الرئيسية",
 
   /* Login */
   "login.title": "مرحباً بعودتك",
@@ -460,6 +471,8 @@ const ar: Record<string, string> = {
   "menu.added_to_cart": "تمت الإضافة إلى السلة!",
   "menu.add_failed": "فشلت الإضافة إلى السلة",
   "menu.load_error": "فشل تحميل القائمة",
+  "menu.categories_load_error": "فشل تحميل التصنيفات",
+  "menu.items_load_error": "فشل تحميل العناصر",
 
   /* Cart */
   "cart.title": "سلة التسوق",
@@ -531,6 +544,7 @@ const ar: Record<string, string> = {
   "orders.all": "الكل",
   "orders.empty": "لا توجد طلبات",
   "orders.browse": "تصفح القائمة",
+  "orders.load_error": "فشل تحميل الطلبات",
 
   /* Order Detail */
   "order.cancel": "إلغاء الطلب",
@@ -606,6 +620,7 @@ const ar: Record<string, string> = {
   "admin.categories": "التصنيفات",
   "admin.orders_by_status": "الطلبات حسب الحالة",
   "admin.denied": "تم رفض الوصول أو فشل التحميل",
+  "admin.load_error": "فشل تحميل لوحة التحكم",
   "admin.manage_menu": "إدارة القائمة",
   "admin.manage_categories": "إدارة التصنيفات",
 
@@ -641,6 +656,8 @@ const ar: Record<string, string> = {
   "admin_menu.save_error": "فشل حفظ العنصر",
   "admin_menu.delete_error": "فشل حذف العنصر",
   "admin_menu.created": "تم إنشاء العنصر بنجاح",
+  "admin_menu.load_error": "فشل تحميل عناصر القائمة",
+  "admin_menu.cats_load_error": "فشل تحميل التصنيفات",
 
   /* Admin Categories */
   "admin_cat.title": "التصنيفات",
@@ -671,6 +688,7 @@ const ar: Record<string, string> = {
   "admin_cat.reorder_error": "فشل إعادة الترتيب",
   "admin_cat.move_up": "تحريك لأعلى",
   "admin_cat.move_down": "تحريك لأسفل",
+  "admin_cat.load_error": "فشل تحميل التصنيفات",
 
   /* Admin Users */
   "admin_users.title": "المستخدمين",
@@ -688,6 +706,7 @@ const ar: Record<string, string> = {
   "admin_users.delete_confirm": "هل أنت متأكد من حذف هذا المستخدم؟",
   "admin_users.deleted": "تم حذف المستخدم",
   "admin_users.cannot_delete_self": "لا يمكنك حذف نفسك",
+  "admin_users.load_error": "فشل تحميل المستخدمين",
 
   /* Admin Orders */
   "admin_orders.title": "إدارة الطلبات",
@@ -703,6 +722,7 @@ const ar: Record<string, string> = {
   "admin_orders.total": "المجموع",
   "admin_orders.date": "التاريخ",
   "admin_orders.view": "عرض",
+  "admin_orders.load_error": "فشل تحميل الطلبات",
 
   /* Admin Order Detail */
   "admin_order.items": "العناصر",

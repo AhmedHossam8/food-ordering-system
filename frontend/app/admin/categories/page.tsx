@@ -32,7 +32,7 @@ export default function AdminCategoriesPage() {
     try {
       const { data } = await api.get("/api/menu/categories/");
       setCategories(data.results || data);
-    } catch {}
+    } catch { toast.error(t("admin_cat.load_error")); }
     finally { setLoading(false); }
   }, []);
 

@@ -6,6 +6,7 @@ import { useAuthStore } from "@/lib/store";
 import { useLanguage } from "@/lib/language";
 import api from "@/lib/api";
 import { formatPrice } from "@/lib/utils";
+import toast from "react-hot-toast";
 
 interface CartItem {
   id: number; menu_item: number; menu_item_name: string; menu_item_name_localized?: string;
@@ -65,7 +66,7 @@ export default function Navbar() {
       setCartItems(data.items || []);
       setCartTotal(data.total || "0.00");
       refreshCartCount();
-    } catch {}
+    } catch { toast.error(t("cart.update_error")); }
     finally { setUpdatingCart(null); }
   };
 
@@ -77,7 +78,7 @@ export default function Navbar() {
       setCartItems(data.items || []);
       setCartTotal(data.total || "0.00");
       refreshCartCount();
-    } catch {}
+    } catch { toast.error(t("cart.remove_error")); }
     finally { setUpdatingCart(null); }
   };
 

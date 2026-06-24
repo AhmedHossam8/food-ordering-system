@@ -6,6 +6,7 @@ import api from "@/lib/api";
 import { useLanguage } from "@/lib/language";
 import { useAuthStore } from "@/lib/store";
 import { formatPrice } from "@/lib/utils";
+import toast from "react-hot-toast";
 import Card from "@/components/ui/Card";
 import Spinner from "@/components/ui/Spinner";
 
@@ -58,8 +59,8 @@ export default function HomePage() {
 
         setFeatured(items.slice(0, 6));
         setCategories(cats);
-      } catch (err) {
-        console.error("Failed to load home data:", err);
+      } catch {
+        toast.error(t("home.load_error"));
       } finally {
         setLoading(false);
       }

@@ -20,7 +20,7 @@ export default function AdminUsersPage() {
     try {
       const { data } = await api.get("/api/admin/users/");
       setUsers(data.results || data);
-    } catch {}
+    } catch { toast.error(t("admin_users.load_error")); }
     finally { setLoading(false); }
   }, []);
 

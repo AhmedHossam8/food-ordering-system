@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import api from "@/lib/api";
 import { useLanguage } from "@/lib/language";
+import toast from "react-hot-toast";
 import Card from "@/components/ui/Card";
 import Spinner from "@/components/ui/Spinner";
 
@@ -20,7 +21,7 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     api.get("/api/admin/dashboard/")
       .then(({ data }) => setStats(data))
-      .catch(() => {})
+      .catch(() => toast.error(t("admin.load_error")))
       .finally(() => setLoading(false));
   }, []);
 

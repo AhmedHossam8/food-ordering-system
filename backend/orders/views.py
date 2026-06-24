@@ -165,6 +165,21 @@ class OrderListView(generics.ListAPIView):
     serializer_class = OrderSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    def list(self, request, *args, **kwargs):
+        from datetime import datetime
+
+        for param in ("date_from", "date_to"):
+            val = request.query_params.get(param)
+            if val:
+                try:
+                    datetime.strptime(val, "%Y-%m-%d")
+                except (ValueError, TypeError):
+                    return Response(
+                        {"detail": f"Invalid date format for '{param}'. Use YYYY-MM-DD."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+        return super().list(request, *args, **kwargs)
+
     def get_queryset(self):
         qs = Order.objects.filter(user=self.request.user)
         status = self.request.query_params.get("status")
@@ -329,7 +344,11 @@ def stripe_webhook(request):
         intent = event["data"]["object"]
         order_id = intent["metadata"].get("order_id")
         if order_id:
-            order = Order.objects.get(id=order_id)
+            try:
+                order = Order.objects.get(id=order_id)
+            except Order.DoesNotExist:
+                logger.warning("Webhook: Order %s not found", order_id)
+                return HttpResponse(status=200)
             order.payment_status = Order.PaymentStatus.PAID
             order.save(update_fields=["payment_status", "updated_at"])
             try:

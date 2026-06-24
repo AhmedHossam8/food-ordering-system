@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import api from "@/lib/api";
 import { useLanguage } from "@/lib/language";
+import toast from "react-hot-toast";
 import Card from "@/components/ui/Card";
 import Spinner from "@/components/ui/Spinner";
 import { StatusBadge, PaymentBadge } from "@/components/ui/Badge";
@@ -27,7 +28,7 @@ export default function OrdersPage() {
       if (status) params.status = status;
       const { data } = await api.get("/api/orders/", { params });
       setOrders(data.results || data);
-    } catch {}
+    } catch { toast.error(t("orders.load_error")); }
     finally { setLoading(false); }
   };
 
