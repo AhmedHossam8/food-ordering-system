@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
 import { useLanguage } from "@/lib/language";
@@ -23,6 +23,7 @@ export default function CartPage() {
   const [loading, setLoading] = useState(!useAuthStore.getState().cartItems.length);
   const [updating, setUpdating] = useState<number | null>(null);
   const router = useRouter();
+  const mounted = useRef(false);
 
   const fetchCart = async () => {
     try {
@@ -36,7 +37,13 @@ export default function CartPage() {
     finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchCart(); }, [lang]);
+  useEffect(() => {
+    if (!mounted.current) {
+      mounted.current = true;
+      if (items.length > 0) { setLoading(false); return; }
+    }
+    fetchCart();
+  }, [lang]);
 
   const recalcTotal = (updatedItems: CartItem[]) =>
     updatedItems.reduce((s, i) => s + parseFloat(i.subtotal), 0).toFixed(2);
