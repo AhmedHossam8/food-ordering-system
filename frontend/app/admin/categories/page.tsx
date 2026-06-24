@@ -18,7 +18,7 @@ interface Category {
 const emptyCat = { name: "", name_ar: "", description: "", description_ar: "", display_order: 0 };
 
 export default function AdminCategoriesPage() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -35,7 +35,7 @@ export default function AdminCategoriesPage() {
     finally { setLoading(false); }
   }, []);
 
-  useEffect(() => { fetchCategories(); }, []);
+  useEffect(() => { fetchCategories(); }, [lang]);
 
   const openAdd = () => {
     setEditing(null);

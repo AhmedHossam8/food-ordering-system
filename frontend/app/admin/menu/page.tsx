@@ -27,7 +27,7 @@ const emptyItem = {
 };
 
 export default function AdminMenuPage() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [items, setItems] = useState<MenuItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,8 +55,8 @@ export default function AdminMenuPage() {
     } catch {}
   }, []);
 
-  useEffect(() => { fetchCategories(); }, []);
-  useEffect(() => { fetchItems(); }, [fetchItems]);
+  useEffect(() => { fetchCategories(); }, [lang]);
+  useEffect(() => { fetchItems(); }, [fetchItems, lang]);
 
   const openAdd = () => {
     setEditing(null);
@@ -194,7 +194,7 @@ export default function AdminMenuPage() {
             >
               <option value={0} disabled>Select...</option>
               {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>{cat.name}</option>
+                <option key={cat.id} value={cat.id}>{cat.name_localized || cat.name}</option>
               ))}
             </select>
           </div>

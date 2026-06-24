@@ -89,7 +89,7 @@ export default function AdminOrderDetailPage() {
               {order.items?.map((item: any) => (
                 <div key={item.id} className="flex justify-between py-3">
                   <div>
-                    <p className="font-medium">{item.menu_item_name}</p>
+                    <p className="font-medium">{item.menu_item_name_localized || item.menu_item_name}</p>
                     <p className="text-sm text-text-secondary">{t("admin_order.qty")} {item.quantity} × ${parseFloat(item.unit_price).toFixed(2)}</p>
                   </div>
                   <span className="font-semibold">${(item.quantity * parseFloat(item.unit_price)).toFixed(2)}</span>
