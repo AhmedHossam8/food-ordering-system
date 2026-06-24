@@ -301,7 +301,7 @@ class CompletePaymentView(generics.CreateAPIView):
         order.save(update_fields=["payment_status", "transaction_id", "updated_at"])
 
         try:
-            order.set_status(Order.Status.CONFIRMED, note="Payment confirmed")
+            order.set_status(Order.Status.PREPARING, note="Payment confirmed")
         except ValueError:
             pass
 
@@ -333,7 +333,7 @@ def stripe_webhook(request):
             order.payment_status = Order.PaymentStatus.PAID
             order.save(update_fields=["payment_status", "updated_at"])
             try:
-                order.set_status(Order.Status.CONFIRMED, note="Payment confirmed")
+                order.set_status(Order.Status.PREPARING, note="Payment confirmed")
             except ValueError:
                 pass
 
@@ -412,9 +412,9 @@ class CancelOrderView(generics.CreateAPIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        if order.status not in (Order.Status.PENDING, Order.Status.CONFIRMED):
+        if order.status != Order.Status.PENDING:
             return Response(
-                {"detail": "Only pending or confirmed orders can be cancelled."},
+                {"detail": "Only pending orders can be cancelled."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -476,7 +476,7 @@ class SimulatePaymentView(APIView):
         order.transaction_id = f"MOCK_{order.id}_{order.created_at.strftime('%Y%m%d%H%M%S')}"
         order.save(update_fields=["payment_status", "transaction_id", "updated_at"])
         try:
-            order.set_status(Order.Status.CONFIRMED, note="Simulated payment (placeholder)")
+            order.set_status(Order.Status.PREPARING, note="Simulated payment (placeholder)")
         except ValueError:
             pass
 

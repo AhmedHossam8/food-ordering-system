@@ -53,17 +53,15 @@ class CartItem(models.Model):
 class Order(models.Model):
     class Status(models.TextChoices):
         PENDING = "pending", _("Pending")
-        CONFIRMED = "confirmed", _("Confirmed")
         PREPARING = "preparing", _("Preparing")
-        READY = "ready", _("Ready")
+        OUT_FOR_DELIVERY = "out_for_delivery", _("Out for Delivery")
         DELIVERED = "delivered", _("Delivered")
         CANCELLED = "cancelled", _("Cancelled")
 
-    VALID_TRANSITIONS = {
-        Status.PENDING: [Status.CONFIRMED, Status.CANCELLED],
-        Status.CONFIRMED: [Status.PREPARING, Status.CANCELLED],
-        Status.PREPARING: [Status.READY, Status.CANCELLED],
-        Status.READY: [Status.DELIVERED],
+    VALID_TRANSITIONS: dict[Status, list[Status]] = {
+        Status.PENDING: [Status.PREPARING, Status.CANCELLED],
+        Status.PREPARING: [Status.OUT_FOR_DELIVERY, Status.CANCELLED],
+        Status.OUT_FOR_DELIVERY: [Status.DELIVERED],
         Status.DELIVERED: [],
         Status.CANCELLED: [],
     }

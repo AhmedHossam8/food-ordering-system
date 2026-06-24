@@ -10,7 +10,7 @@ A full-stack food ordering web application with bilingual (English/Arabic) suppo
 - **Menu Browsing** — Browse categories and items with search, category filtering, and price range filters
 - **Shopping Cart** — Add/update/remove items, persisted across sessions via Zustand + `localStorage`
 - **Checkout** — Delivery address form with saved address reuse, cash-on-delivery or simulated online payment
-- **Order Tracking** — Real-time order status updates with 10-second polling, cancel pending/confirmed orders
+- **Order Tracking** — Real-time order status updates with 10-second polling, cancel pending orders
 - **User Accounts** — Register, login, profile management, password reset via email
 - **Internationalization** — Full English/Arabic support with RTL layout and localized numerals
 

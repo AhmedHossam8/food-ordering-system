@@ -71,10 +71,9 @@ export default function AdminOrderDetailPage() {
   if (!order) return null;
 
   const transitions: Record<string, string[]> = {
-    pending: ["confirmed", "cancelled"],
-    confirmed: ["preparing", "cancelled"],
-    preparing: ["ready", "cancelled"],
-    ready: ["delivered"],
+    pending: ["preparing", "cancelled"],
+    preparing: ["out_for_delivery", "cancelled"],
+    out_for_delivery: ["delivered"],
     delivered: [],
     cancelled: [],
   };

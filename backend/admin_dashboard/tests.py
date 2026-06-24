@@ -63,12 +63,12 @@ class AdminDashboardTests(APITestCase):
         self.client.force_authenticate(user=self.staff)
         Order.objects.create(user=self.user, total_price=10, status=Order.Status.PENDING)
         Order.objects.create(
-            user=self.user, total_price=20, status=Order.Status.CONFIRMED,
+            user=self.user, total_price=20, status=Order.Status.PREPARING,
         )
         response = self.client.get("/api/admin/dashboard/")
         self.assertEqual(response.data["pending_orders"], 1)
         self.assertEqual(response.data["orders_by_status"]["pending"], 1)
-        self.assertEqual(response.data["orders_by_status"]["confirmed"], 1)
+        self.assertEqual(response.data["orders_by_status"]["preparing"], 1)
 
 
 # Revenue analytics tests removed since revenue was removed from the system
@@ -151,7 +151,7 @@ class AdminOrderListTests(APITestCase):
             payment_status=Order.PaymentStatus.PENDING,
         )
         self.order2 = Order.objects.create(
-            user=self.user, total_price=20, status=Order.Status.CONFIRMED,
+            user=self.user, total_price=20, status=Order.Status.PREPARING,
             payment_status=Order.PaymentStatus.PAID,
         )
 
@@ -282,7 +282,7 @@ class ExportOrdersTests(APITestCase):
         self.client.force_authenticate(user=self.staff)
         Order.objects.create(user=self.user, total_price=10, status=Order.Status.PENDING)
         Order.objects.create(
-            user=self.user, total_price=20, status=Order.Status.CONFIRMED,
+            user=self.user, total_price=20, status=Order.Status.PREPARING,
         )
         response = self.client.get("/api/admin/orders/export/?status=pending")
         content = response.content.decode()

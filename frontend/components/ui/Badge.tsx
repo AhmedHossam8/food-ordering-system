@@ -28,9 +28,8 @@ export function StatusBadge({ status }: { status: string }) {
   const { t } = useLanguage();
   const map: Record<string, { key: string; variant: "default" | "success" | "warning" | "danger" | "info" | "purple" }> = {
     pending: { key: "status.pending", variant: "warning" },
-    confirmed: { key: "status.confirmed", variant: "info" },
     preparing: { key: "status.preparing", variant: "purple" },
-    ready: { key: "status.ready", variant: "success" },
+    out_for_delivery: { key: "status.out_for_delivery", variant: "info" },
     delivered: { key: "status.delivered", variant: "default" },
     cancelled: { key: "status.cancelled", variant: "danger" },
   };

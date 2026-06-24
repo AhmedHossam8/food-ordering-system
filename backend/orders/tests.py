@@ -180,7 +180,7 @@ class PaymentCompletionTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.order.refresh_from_db()
         self.assertEqual(self.order.payment_status, Order.PaymentStatus.PAID)
-        self.assertEqual(self.order.status, Order.Status.CONFIRMED)
+        self.assertEqual(self.order.status, Order.Status.PREPARING)
 
     @patch("orders.views.retrieve_payment_intent")
     def test_complete_payment_rejects_unpaid_intent(self, mock_retrieve):
@@ -270,18 +270,18 @@ class OrderStatusUpdateTests(APITestCase):
         self.client.force_authenticate(user=self.staff)
         response = self.client.patch(
             f"/api/orders/{self.order.id}/status/",
-            {"status": "confirmed"},
+            {"status": "preparing"},
             format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.order.refresh_from_db()
-        self.assertEqual(self.order.status, Order.Status.CONFIRMED)
+        self.assertEqual(self.order.status, Order.Status.PREPARING)
 
     def test_non_staff_cannot_update_status(self):
         self.client.force_authenticate(user=self.user)
         response = self.client.patch(
             f"/api/orders/{self.order.id}/status/",
-            {"status": "confirmed"},
+            {"status": "preparing"},
             format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -299,13 +299,13 @@ class OrderStatusUpdateTests(APITestCase):
         self.client.force_authenticate(user=self.staff)
         self.client.patch(
             f"/api/orders/{self.order.id}/status/",
-            {"status": "confirmed", "note": "Test note"},
+            {"status": "preparing", "note": "Test note"},
             format="json",
         )
         self.assertEqual(OrderStatusLog.objects.count(), 1)
         log = OrderStatusLog.objects.first()
         self.assertEqual(log.from_status, "pending")
-        self.assertEqual(log.to_status, "confirmed")
+        self.assertEqual(log.to_status, "preparing")
         self.assertEqual(log.note, "Test note")
 
 
@@ -430,13 +430,13 @@ class OrderEmailTests(APITestCase):
         self.client.force_authenticate(user=staff)
         response = self.client.patch(
             f"/api/orders/{order.id}/status/",
-            {"status": "confirmed", "note": "Your order is confirmed"},
+            {"status": "preparing", "note": "Your order is confirmed"},
             format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn("Status Update", mail.outbox[0].subject)
-        self.assertIn("confirmed", mail.outbox[0].body)
+        self.assertIn("preparing", mail.outbox[0].body)
 
     def test_cancellation_sends_email(self):
         order = Order.objects.create(
@@ -460,7 +460,7 @@ class OrderFilterTests(APITestCase):
             payment_status=Order.PaymentStatus.PENDING,
         )
         self.order2 = Order.objects.create(
-            user=self.user, total_price=20, status=Order.Status.CONFIRMED,
+            user=self.user, total_price=20, status=Order.Status.PREPARING,
             payment_status=Order.PaymentStatus.PAID,
         )
 
@@ -527,7 +527,7 @@ class WebhookTests(APITestCase):
         self.assertEqual(response.status_code, 200)
         order.refresh_from_db()
         self.assertEqual(order.payment_status, Order.PaymentStatus.PAID)
-        self.assertEqual(order.status, Order.Status.CONFIRMED)
+        self.assertEqual(order.status, Order.Status.PREPARING)
 
     @patch("orders.views.stripe.Webhook.construct_event")
     def test_webhook_payment_failed(self, mock_construct):

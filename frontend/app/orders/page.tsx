@@ -33,7 +33,7 @@ export default function OrdersPage() {
 
   useEffect(() => { fetchOrders(statusFilter); }, [statusFilter]);
 
-  const filters = ["", "pending", "confirmed", "preparing", "ready", "delivered", "cancelled"];
+  const filters = ["", "pending", "preparing", "out_for_delivery", "delivered", "cancelled"];
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

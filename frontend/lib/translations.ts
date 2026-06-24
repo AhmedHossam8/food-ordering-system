@@ -356,9 +356,8 @@ const en: Record<string, string> = {
 
   /* Status / Payment Badges */
   "status.pending": "Pending",
-  "status.confirmed": "Confirmed",
   "status.preparing": "Preparing",
-  "status.ready": "Ready",
+  "status.out_for_delivery": "Out for Delivery",
   "status.delivered": "Delivered",
   "status.cancelled": "Cancelled",
   "payment.pending": "Pending",
@@ -724,9 +723,8 @@ const ar: Record<string, string> = {
 
   /* Status / Payment Badges */
   "status.pending": "معلق",
-  "status.confirmed": "مؤكد",
   "status.preparing": "قيد التحضير",
-  "status.ready": "جاهز",
+  "status.out_for_delivery": "قيد التوصيل",
   "status.delivered": "تم التوصيل",
   "status.cancelled": "ملغي",
   "payment.pending": "معلق",

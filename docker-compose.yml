@@ -66,6 +66,16 @@ services:
       - static_volume:/app/staticfiles
       - media_volume:/app/media
 
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - app
+    environment:
+      NEXT_PUBLIC_API_URL: "http://localhost:8000"
+    ports:
+      - "3000:3000"
+
   nginx:
     image: nginx:1.25-alpine
     restart: unless-stopped

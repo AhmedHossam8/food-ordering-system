@@ -76,7 +76,7 @@ export default function OrderDetailPage() {
   if (loading) return <div className="flex justify-center py-16"><Spinner className="h-8 w-8" /></div>;
   if (!order) return null;
 
-  const canCancel = order.status === "pending" || order.status === "confirmed";
+  const canCancel = order.status === "pending";
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
