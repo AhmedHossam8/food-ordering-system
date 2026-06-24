@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import api from "@/lib/api";
 import { useLanguage } from "@/lib/language";
@@ -30,16 +30,26 @@ export default function OrderDetailPage() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
+  const fetchedOnce = useRef(false);
 
-  const fetchOrder = () =>
-    api.get(`/api/orders/${id}/`)
-      .then(({ data }) => { setOrder(data); return data; })
-      .catch(() => { if (!order) { toast.error(t("order.not_found")); router.push("/orders"); } });
+  const fetchOrder = useCallback(async () => {
+    try {
+      const { data } = await api.get(`/api/orders/${id}/`);
+      setOrder(data);
+      return data;
+    } catch {
+      if (!fetchedOnce.current) {
+        toast.error(t("order.not_found"));
+        router.push("/orders");
+      }
+      return null;
+    }
+  }, [id, router, t]);
 
   useEffect(() => {
-    if (!id) return;
-    fetchOrder().finally(() => setLoading(false));
-  }, [id]);
+    fetchedOnce.current = false;
+    fetchOrder().finally(() => { fetchedOnce.current = true; setLoading(false); });
+  }, [fetchOrder, id]);
 
   useEffect(() => {
     if (!id || loading) return;
@@ -49,7 +59,7 @@ export default function OrderDetailPage() {
       });
     }, 10000);
     return () => clearInterval(interval);
-  }, [id, loading]);
+  }, [id, loading, fetchOrder]);
 
   const cancelOrder = async () => {
     setCancelling(true);

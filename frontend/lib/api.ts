@@ -31,6 +31,9 @@ api.interceptors.request.use((config) => {
     if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
       invalidateCache("/api/menu/");
       invalidateCache("/api/orders/cart/");
+      if (url.includes("/api/orders/") && !url.includes("/cart/")) {
+        invalidateCache("/api/orders/");
+      }
     }
 
     // Serve GET requests from cache

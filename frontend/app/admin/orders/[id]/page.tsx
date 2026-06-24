@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import api from "@/lib/api";
@@ -19,16 +19,27 @@ export default function AdminOrderDetailPage() {
   const [newStatus, setNewStatus] = useState("");
   const [note, setNote] = useState("");
   const [updating, setUpdating] = useState(false);
+  const fetchedOnce = useRef(false);
 
-  const fetchOrder = () =>
-    api.get(`/api/admin/orders/${id}/`)
-      .then(({ data }) => { setOrder(data); setNewStatus(data.status); return data; })
-      .catch(() => { if (!order) { toast.error(t("admin_order.not_found")); router.push("/admin/orders"); } });
+  const fetchOrder = useCallback(async () => {
+    try {
+      const { data } = await api.get(`/api/admin/orders/${id}/`);
+      setOrder(data);
+      setNewStatus(data.status);
+      return data;
+    } catch {
+      if (!fetchedOnce.current) {
+        toast.error(t("admin_order.not_found"));
+        router.push("/admin/orders");
+      }
+      return null;
+    }
+  }, [id, router, t]);
 
   useEffect(() => {
-    if (!id) return;
-    fetchOrder().finally(() => setLoading(false));
-  }, [id]);
+    fetchedOnce.current = false;
+    fetchOrder().finally(() => { fetchedOnce.current = true; setLoading(false); });
+  }, [fetchOrder, id]);
 
   useEffect(() => {
     if (!id || loading) return;
@@ -38,7 +49,7 @@ export default function AdminOrderDetailPage() {
       });
     }, 10000);
     return () => clearInterval(interval);
-  }, [id, loading]);
+  }, [id, loading, fetchOrder]);
 
   const updateStatus = async () => {
     if (!newStatus || newStatus === order.status) return;
