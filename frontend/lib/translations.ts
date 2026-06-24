@@ -267,6 +267,13 @@ const en: Record<string, string> = {
   "admin_menu.confirm_delete": "Are you sure you want to delete this item?",
   "admin_menu.no_items": "No menu items yet",
   "admin_menu.search": "Search items...",
+  "admin_menu.search_btn": "Search",
+  "admin_menu.name_required": "Item name is required",
+  "admin_menu.category_required": "Please select a category",
+  "admin_menu.price_required": "Price must be greater than 0",
+  "admin_menu.save_error": "Failed to save item",
+  "admin_menu.delete_error": "Failed to delete item",
+  "admin_menu.created": "Item created successfully",
 
   /* Admin Categories */
   "admin_cat.title": "Categories",
@@ -288,6 +295,10 @@ const en: Record<string, string> = {
   "admin_cat.deleted": "Category deleted successfully",
   "admin_cat.confirm_delete": "Are you sure you want to delete this category?",
   "admin_cat.no_cats": "No categories yet",
+  "admin_cat.name_required": "Category name is required",
+  "admin_cat.save_error": "Failed to save category",
+  "admin_cat.delete_error": "Failed to delete category",
+  "admin_cat.created": "Category created successfully",
 
   /* Admin Users */
   "admin_users.title": "Users",
@@ -619,6 +630,13 @@ const ar: Record<string, string> = {
   "admin_menu.confirm_delete": "هل أنت متأكد من حذف هذا العنصر؟",
   "admin_menu.no_items": "لا توجد عناصر قائمة بعد",
   "admin_menu.search": "ابحث عن عناصر...",
+  "admin_menu.search_btn": "بحث",
+  "admin_menu.name_required": "اسم العنصر مطلوب",
+  "admin_menu.category_required": "يرجى اختيار تصنيف",
+  "admin_menu.price_required": "السعر يجب أن يكون أكبر من 0",
+  "admin_menu.save_error": "فشل حفظ العنصر",
+  "admin_menu.delete_error": "فشل حذف العنصر",
+  "admin_menu.created": "تم إنشاء العنصر بنجاح",
 
   /* Admin Categories */
   "admin_cat.title": "التصنيفات",
@@ -640,6 +658,10 @@ const ar: Record<string, string> = {
   "admin_cat.deleted": "تم حذف التصنيف بنجاح",
   "admin_cat.confirm_delete": "هل أنت متأكد من حذف هذا التصنيف؟",
   "admin_cat.no_cats": "لا توجد تصنيفات بعد",
+  "admin_cat.name_required": "اسم التصنيف مطلوب",
+  "admin_cat.save_error": "فشل حفظ التصنيف",
+  "admin_cat.delete_error": "فشل حذف التصنيف",
+  "admin_cat.created": "تم إنشاء التصنيف بنجاح",
 
   /* Admin Users */
   "admin_users.title": "المستخدمين",

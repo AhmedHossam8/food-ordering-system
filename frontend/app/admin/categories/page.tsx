@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import api from "@/lib/api";
 import { useLanguage } from "@/lib/language";
+import toast from "react-hot-toast";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -56,6 +57,7 @@ export default function AdminCategoriesPage() {
   };
 
   const handleSave = async () => {
+    if (!form.name.trim()) { toast.error(t("admin_cat.name_required")); return; }
     setSaving(true);
     try {
       if (editing) {
@@ -64,8 +66,12 @@ export default function AdminCategoriesPage() {
         await api.post("/api/menu/categories/", form);
       }
       setModalOpen(false);
+      toast.success(editing ? t("admin_cat.updated") : t("admin_cat.created"));
       fetchCategories();
-    } catch {}
+    } catch (e: unknown) {
+      const msg = (e as any)?.response?.data?.name?.[0] || (e as any)?.response?.data?.detail || t("admin_cat.save_error");
+      toast.error(msg);
+    }
     finally { setSaving(false); }
   };
 
@@ -73,8 +79,9 @@ export default function AdminCategoriesPage() {
     if (!confirm(t("admin_cat.confirm_delete"))) return;
     try {
       await api.delete(`/api/menu/categories/${id}/`);
+      toast.success(t("admin_cat.deleted"));
       fetchCategories();
-    } catch {}
+    } catch { toast.error(t("admin_cat.delete_error")); }
   };
 
   return (

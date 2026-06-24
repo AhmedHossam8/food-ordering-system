@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import api from "@/lib/api";
 import { useLanguage } from "@/lib/language";
+import toast from "react-hot-toast";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -37,16 +38,16 @@ export default function AdminMenuPage() {
   const [form, setForm] = useState(emptyItem);
   const [saving, setSaving] = useState(false);
 
-  const fetchItems = useCallback(async () => {
+  const fetchItems = useCallback(async (query?: string) => {
     setLoading(true);
     try {
       const params: Record<string, string> = {};
-      if (search) params.search = search;
+      if (query) params.search = query;
       const { data } = await api.get("/api/menu/items/", { params });
       setItems(data.results || data);
     } catch {}
     finally { setLoading(false); }
-  }, [search]);
+  }, []);
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -56,7 +57,12 @@ export default function AdminMenuPage() {
   }, []);
 
   useEffect(() => { fetchCategories(); }, [lang]);
-  useEffect(() => { fetchItems(); }, [fetchItems, lang]);
+  useEffect(() => { fetchItems(); }, [lang]);
+
+  const handleSearch = () => { fetchItems(search); };
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") handleSearch();
+  };
 
   const openAdd = () => {
     setEditing(null);
@@ -81,6 +87,9 @@ export default function AdminMenuPage() {
   };
 
   const handleSave = async () => {
+    if (!form.name.trim()) { toast.error(t("admin_menu.name_required")); return; }
+    if (!form.category) { toast.error(t("admin_menu.category_required")); return; }
+    if (!form.price || parseFloat(form.price) <= 0) { toast.error(t("admin_menu.price_required")); return; }
     setSaving(true);
     try {
       const payload = { ...form, image: form.image || null };
@@ -90,8 +99,13 @@ export default function AdminMenuPage() {
         await api.post("/api/menu/items/", payload);
       }
       setModalOpen(false);
+      toast.success(editing ? t("admin_menu.updated") : t("admin_menu.created"));
       fetchItems();
-    } catch {}
+    } catch (e: unknown) {
+      const errData = (e as any)?.response?.data;
+      const msg = errData?.name?.[0] || errData?.price?.[0] || errData?.category?.[0] || errData?.detail || t("admin_menu.save_error");
+      toast.error(msg);
+    }
     finally { setSaving(false); }
   };
 
@@ -99,8 +113,9 @@ export default function AdminMenuPage() {
     if (!confirm(t("admin_menu.confirm_delete"))) return;
     try {
       await api.delete(`/api/menu/items/${id}/`);
+      toast.success(t("admin_menu.deleted"));
       fetchItems();
-    } catch {}
+    } catch { toast.error(t("admin_menu.delete_error")); }
   };
 
   return (
@@ -121,14 +136,17 @@ export default function AdminMenuPage() {
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
-        <input
-          type="text"
-          placeholder={t("admin_menu.search")}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && fetchItems()}
-          className="flex-1 px-4 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-        />
+        <div className="flex-1 flex gap-2">
+          <input
+            type="text"
+            placeholder={t("admin_menu.search")}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={handleSearchKeyDown}
+            className="flex-1 px-4 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+          />
+          <Button variant="outline" onClick={handleSearch}>{t("admin_menu.search_btn")}</Button>
+        </div>
         <Button onClick={openAdd}>{t("admin_menu.add")}</Button>
       </div>
 
