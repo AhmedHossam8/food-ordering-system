@@ -55,19 +55,18 @@ function MenuPageContent() {
     api.get("/api/menu/categories/")
       .then(({ data }) => setCategories(data.results || data))
       .catch(() => {});
-  }, [searchParams]);
+  }, [searchParams, lang]);
 
   useEffect(() => {
       const params: Record<string, string> = {};
       if (activeCategory) params.category = String(activeCategory);
     if (minPrice) params.min_price = minPrice;
     if (maxPrice) params.max_price = maxPrice;
-    if (!fetched.current) setLoading(true);
     api.get("/api/menu/items/", { params })
       .then(({ data }) => setItems(data.results || data))
       .catch(() => {})
       .finally(() => { fetched.current = true; setLoading(false); });
-  }, [activeCategory, minPrice, maxPrice]);
+  }, [activeCategory, minPrice, maxPrice, lang]);
 
   const addToCart = async (menuItemId: number, qty: number) => {
     if (!isAuthed) { toast.error(t("menu.login_first")); return; }

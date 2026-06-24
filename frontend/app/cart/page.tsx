@@ -32,7 +32,7 @@ export default function CartPage() {
     finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchCart(); }, []);
+  useEffect(() => { fetchCart(); }, [lang]);
 
   const updateQty = async (itemId: number, qty: number) => {
     if (qty < 1) return;

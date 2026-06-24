@@ -12,15 +12,18 @@ import Spinner from "@/components/ui/Spinner";
 interface MenuItem {
   id: number;
   name: string;
+  name_localized?: string;
   price: string;
   category_name: string;
   description: string;
+  description_localized?: string;
   image: string | null;
 }
 
 interface Category {
   id: number;
   name: string;
+  name_localized?: string;
 }
 
 export default function HomePage() {
@@ -63,7 +66,7 @@ export default function HomePage() {
     };
 
     fetchData();
-  }, [mounted]);
+  }, [mounted, lang]);
 
   // Prevent hydration mismatch completely
   if (!mounted) return null;
@@ -116,7 +119,7 @@ export default function HomePage() {
                 href={`/menu?category=${cat.id}`}
                 className="flex-shrink-0 bg-white border rounded-xl px-5 py-3 text-sm font-medium"
               >
-                {cat.name}
+                {cat.name_localized || cat.name}
               </Link>
             ))}
           </div>
@@ -143,7 +146,7 @@ export default function HomePage() {
                   {item.image ? (
                     <img
                       src={item.image}
-                      alt={item.name}
+                      alt={item.name_localized || item.name}
                       className="w-full h-full object-cover"
                     />
                   ) : (
@@ -152,9 +155,9 @@ export default function HomePage() {
                 </div>
 
                 <div className="p-4">
-                  <h3 className="text-lg font-semibold">{item.name}</h3>
+                  <h3 className="text-lg font-semibold">{item.name_localized || item.name}</h3>
                   <p className="text-sm text-gray-500 line-clamp-2">
-                    {item.description}
+                    {item.description_localized || item.description}
                   </p>
 
                   <div className="mt-4 flex justify-between items-center">
