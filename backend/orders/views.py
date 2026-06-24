@@ -78,6 +78,13 @@ class ClearCartView(APIView):
         return Response({"detail": "Cart cleared."}, status=status.HTTP_204_NO_CONTENT)
 
 
+class CartCountView(APIView):
+    def get(self, request):
+        cart = get_cart(request)
+        total = sum(item.quantity for item in cart.items.all())
+        return Response({"count": total})
+
+
 class CreateOrderView(generics.CreateAPIView):
     serializer_class = CreateOrderSerializer
     permission_classes = [permissions.IsAuthenticated]

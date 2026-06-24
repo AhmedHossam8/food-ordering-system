@@ -35,23 +35,43 @@ export default function CartPage() {
 
   useEffect(() => { fetchCart(); }, [lang]);
 
+  const recalcTotal = (updatedItems: CartItem[]) =>
+    updatedItems.reduce((s, i) => s + parseFloat(i.subtotal), 0).toFixed(2);
+
   const updateQty = async (itemId: number, qty: number) => {
     if (qty < 1) return;
+    const prev = items;
     setUpdating(itemId);
+    const next = items.map((i) =>
+      i.id === itemId ? { ...i, quantity: qty, subtotal: (parseFloat(i.menu_item_price) * qty).toFixed(2) } : i
+    );
+    setItems(next);
+    setTotal(recalcTotal(next));
     try {
       await api.patch(`/api/orders/cart/items/${itemId}/`, { quantity: qty });
-      await fetchCart();
-    } catch { toast.error(t("cart.update_error")); }
+    } catch {
+      setItems(prev);
+      setTotal(recalcTotal(prev));
+      toast.error(t("cart.update_error"));
+    }
     finally { setUpdating(null); }
   };
 
   const removeItem = async (itemId: number) => {
+    const prev = items;
     setUpdating(itemId);
+    const next = items.filter((i) => i.id !== itemId);
+    setItems(next);
+    setTotal(recalcTotal(next));
     try {
       await api.delete(`/api/orders/cart/items/${itemId}/remove/`);
       toast.success(t("cart.removed"));
-      await fetchCart();
-    } catch { toast.error(t("cart.remove_error")); }
+      useAuthStore.getState().refreshCartCount();
+    } catch {
+      setItems(prev);
+      setTotal(recalcTotal(prev));
+      toast.error(t("cart.remove_error"));
+    }
     finally { setUpdating(null); }
   };
 
@@ -78,13 +98,19 @@ export default function CartPage() {
           <p className="text-text-secondary text-sm mt-1">{items.length} {items.length !== 1 ? t("cart.items") : t("cart.item")}</p>
         </div>
         <Button variant="ghost" onClick={async () => {
+          const prev = items;
+          const prevTotal = total;
+          setItems([]);
+          setTotal("0.00");
           try {
             await api.delete("/api/orders/cart/clear/");
-            setItems([]);
-            setTotal("0.00");
             useAuthStore.getState().refreshCartCount();
             toast.success(t("cart.cleared"));
-          } catch { toast.error(t("cart.clear_error")); }
+          } catch {
+            setItems(prev);
+            setTotal(prevTotal);
+            toast.error(t("cart.clear_error"));
+          }
         }}>
           {t("cart.clear")}
         </Button>
