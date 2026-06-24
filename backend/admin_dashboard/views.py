@@ -2,7 +2,7 @@ from datetime import timedelta
 from decimal import Decimal
 
 from django.contrib.auth.models import User
-from django.db.models import Count, Sum
+from django.db.models import Count, Prefetch, Sum
 from django.utils import timezone
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
@@ -42,7 +42,9 @@ class DashboardView(APIView):
         )
         status_counts = {item["status"]: item["count"] for item in orders_by_status}
 
-        recent_orders = Order.objects.select_related("user").order_by("-created_at")[:10]
+        recent_orders = Order.objects.select_related("user").prefetch_related(
+            Prefetch('items', queryset=OrderItem.objects.select_related('menu_item'))
+        ).order_by("-created_at")[:10]
         recent_data = OrderSerializer(recent_orders, many=True).data
 
         return Response({
@@ -103,7 +105,8 @@ class TopItemsView(APIView):
 
 class AdminOrderListView(generics.ListAPIView):
     queryset = Order.objects.select_related("user").prefetch_related(
-        "items", "status_logs"
+        Prefetch('items', queryset=OrderItem.objects.select_related('menu_item')),
+        "status_logs"
     ).all()
     serializer_class = OrderSerializer
     permission_classes = [permissions.IsAuthenticated, IsStaffUser]

@@ -22,7 +22,7 @@ class MenuItemViewSet(viewsets.ModelViewSet):
     permission_classes = [IsStaffOrReadOnly]
 
     def get_queryset(self):
-        queryset = MenuItem.objects.all()
+        queryset = MenuItem.objects.select_related('category').all()
         category = self.request.query_params.get("category")
         available = self.request.query_params.get("available")
         search = self.request.query_params.get("search")

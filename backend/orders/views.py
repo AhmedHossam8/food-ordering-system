@@ -3,6 +3,7 @@ import stripe
 from django.conf import settings
 from django.core.mail import send_mail
 from django.db import models
+from django.db.models import Prefetch
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 from rest_framework import generics, permissions, status
@@ -35,6 +36,9 @@ def get_cart(request):
             session_key=request.session.session_key,
             defaults={"user": None},
         )
+    cart = Cart.objects.prefetch_related(
+        Prefetch('items', queryset=CartItem.objects.select_related('menu_item'))
+    ).get(pk=cart.pk)
     return cart
 
 
@@ -49,7 +53,8 @@ class AddToCartView(generics.CreateAPIView):
     serializer_class = AddToCartSerializer
 
     def perform_create(self, serializer):
-        serializer.save(cart=get_cart(self.request))
+        cart = get_cart(self.request)
+        serializer.save(cart=cart)
 
 
 class UpdateCartItemView(generics.UpdateAPIView):
@@ -72,7 +77,9 @@ class CreateOrderView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         user = self.request.user
-        cart = Cart.objects.filter(user=user).first()
+        cart = Cart.objects.prefetch_related(
+            Prefetch('items', queryset=CartItem.objects.select_related('menu_item'))
+        ).filter(user=user).first()
         if not cart or not cart.items.exists():
             raise ValidationError("Cart is empty")
 

@@ -84,26 +84,39 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-parsed = urlparse.urlparse(os.environ['DATABASE_URL'])
-qs = urlparse.parse_qs(parsed.query)
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': parsed.path.lstrip('/'),
-        'USER': parsed.username,
-        'PASSWORD': parsed.password,
-        'HOST': parsed.hostname,
-        'PORT': parsed.port or '',
-    }
-}
-if qs:
-    DATABASES['default']['OPTIONS'] = {k: qs[k][0] for k in qs}
-
-
 import sys
-if 'test' in sys.argv or 'test_coverage' in sys.argv:
-    DATABASES['default']['ENGINE'] = 'django.db.backends.sqlite3'
-    DATABASES['default']['NAME'] = ':memory:'
+TESTING = 'test' in sys.argv or 'test_coverage' in sys.argv
+
+if TESTING:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': ':memory:',
+        }
+    }
+else:
+    db_url = os.getenv("DATABASE_URL")
+    if not db_url:
+        db_user = os.getenv("DB_USER", "food_user")
+        db_pass = os.getenv("DB_PASSWORD", "")
+        db_host = os.getenv("DB_HOST", "localhost")
+        db_port = os.getenv("DB_PORT", "5432")
+        db_name = os.getenv("DB_NAME", "food_ordering")
+        db_url = f"postgresql://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}"
+    parsed = urlparse.urlparse(db_url)
+    qs = urlparse.parse_qs(parsed.query)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': parsed.path.lstrip('/'),
+            'USER': parsed.username,
+            'PASSWORD': parsed.password,
+            'HOST': parsed.hostname,
+            'PORT': parsed.port or '',
+        }
+    }
+    if qs:
+        DATABASES['default']['OPTIONS'] = {k: qs[k][0] for k in qs}
 
 
 # Password validation
