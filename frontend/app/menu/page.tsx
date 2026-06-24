@@ -47,6 +47,7 @@ function MenuPageContent() {
 
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [quantity, setQuantity] = useState(1);
+  const [addingItems, setAddingItems] = useState<Set<number>>(new Set());
 
   const fetched = useRef(false);
 
@@ -71,6 +72,8 @@ function MenuPageContent() {
 
   const addToCart = async (menuItemId: number, qty: number) => {
     if (!isAuthed) { toast.error(t("menu.login_first")); return; }
+    if (addingItems.has(menuItemId)) return;
+    setAddingItems((prev) => new Set(prev).add(menuItemId));
     try {
       await api.post("/api/orders/cart/add/", { menu_item: menuItemId, quantity: qty });
       toast.success(t("menu.added_to_cart"));
@@ -78,6 +81,7 @@ function MenuPageContent() {
       setQuantity(1);
       useAuthStore.getState().refreshCartCount();
     } catch { toast.error(t("menu.add_failed")); }
+    finally { setAddingItems((prev) => { const next = new Set(prev); next.delete(menuItemId); return next; }); }
   };
 
   return (
@@ -145,8 +149,8 @@ function MenuPageContent() {
                 <p className="text-xs text-text-muted mt-1 line-clamp-2">{item.description_localized || item.description}</p>
                 <div className="flex items-center justify-between mt-3">
                   <span className="text-lg font-bold text-primary-600">{formatPrice(item.price, lang)}</span>
-                  <Button size="sm" onClick={() => addToCart(item.id, 1)}>
-                    {t("menu.add")}
+                  <Button size="sm" onClick={() => addToCart(item.id, 1)} loading={addingItems.has(item.id)}>
+                    {addingItems.has(item.id) ? t("menu.adding") : t("menu.add")}
                   </Button>
                 </div>
               </div>
@@ -179,8 +183,8 @@ function MenuPageContent() {
                 <button onClick={() => setQuantity(quantity + 1)} className="w-8 h-8 bg-gray-100 rounded-full hover:bg-gray-200 flex items-center justify-center font-medium">+</button>
               </div>
             </div>
-            <Button className="w-full" size="lg" onClick={() => addToCart(selectedItem.id, quantity)}>
-              {t("menu.add_to_cart")} — {formatPrice((parseFloat(selectedItem.price) * quantity).toFixed(2), lang)}
+            <Button className="w-full" size="lg" onClick={() => addToCart(selectedItem.id, quantity)} loading={addingItems.has(selectedItem.id)}>
+              {addingItems.has(selectedItem.id) ? t("menu.adding") : t("menu.add_to_cart")} — {formatPrice((parseFloat(selectedItem.price) * quantity).toFixed(2), lang)}
             </Button>
           </div>
         )}
