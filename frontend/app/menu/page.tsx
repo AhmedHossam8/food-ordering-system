@@ -80,7 +80,7 @@ function MenuPageContent() {
       setSelectedItem(null);
       setQuantity(1);
       useAuthStore.getState().refreshCartCount();
-      api.get("/api/orders/cart/").catch(() => {});
+      api.get("/api/orders/cart/").then(({ data }) => useAuthStore.getState().setCartData(data.items || [], data.total || "0.00")).catch(() => {});
     } catch { toast.error(t("menu.add_failed")); }
     finally { setAddingItems((prev) => { const next = new Set(prev); next.delete(menuItemId); return next; }); }
   };

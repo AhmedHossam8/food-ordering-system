@@ -18,17 +18,20 @@ interface CartItem {
 
 export default function CartPage() {
   const { t, lang } = useLanguage();
-  const [items, setItems] = useState<CartItem[]>([]);
-  const [total, setTotal] = useState("0.00");
-  const [loading, setLoading] = useState(true);
+  const [items, setItems] = useState<CartItem[]>(useAuthStore.getState().cartItems);
+  const [total, setTotal] = useState(useAuthStore.getState().cartTotal);
+  const [loading, setLoading] = useState(!useAuthStore.getState().cartItems.length);
   const [updating, setUpdating] = useState<number | null>(null);
   const router = useRouter();
 
   const fetchCart = async () => {
     try {
       const { data } = await api.get("/api/orders/cart/");
-      setItems(data.items || []);
-      setTotal(data.total || "0.00");
+      const newItems = data.items || [];
+      const newTotal = data.total || "0.00";
+      setItems(newItems);
+      setTotal(newTotal);
+      useAuthStore.getState().setCartData(newItems, newTotal);
     } catch { toast.error(t("cart.load_error")); }
     finally { setLoading(false); }
   };
@@ -47,12 +50,14 @@ export default function CartPage() {
     );
     setItems(next);
     setTotal(recalcTotal(next));
+    useAuthStore.getState().setCartData(next, recalcTotal(next));
     try {
       await api.patch(`/api/orders/cart/items/${itemId}/`, { quantity: qty });
-      api.get("/api/orders/cart/").catch(() => {});
+      api.get("/api/orders/cart/").then(({ data }) => useAuthStore.getState().setCartData(data.items || [], data.total || "0.00")).catch(() => {});
     } catch {
       setItems(prev);
       setTotal(recalcTotal(prev));
+      useAuthStore.getState().setCartData(prev, recalcTotal(prev));
       toast.error(t("cart.update_error"));
     }
     finally { setUpdating(null); }
@@ -64,14 +69,16 @@ export default function CartPage() {
     const next = items.filter((i) => i.id !== itemId);
     setItems(next);
     setTotal(recalcTotal(next));
+    useAuthStore.getState().setCartData(next, recalcTotal(next));
     try {
       await api.delete(`/api/orders/cart/items/${itemId}/remove/`);
       toast.success(t("cart.removed"));
       useAuthStore.getState().refreshCartCount();
-      api.get("/api/orders/cart/").catch(() => {});
+      api.get("/api/orders/cart/").then(({ data }) => useAuthStore.getState().setCartData(data.items || [], data.total || "0.00")).catch(() => {});
     } catch {
       setItems(prev);
       setTotal(recalcTotal(prev));
+      useAuthStore.getState().setCartData(prev, recalcTotal(prev));
       toast.error(t("cart.remove_error"));
     }
     finally { setUpdating(null); }
@@ -104,14 +111,16 @@ export default function CartPage() {
           const prevTotal = total;
           setItems([]);
           setTotal("0.00");
+          useAuthStore.getState().setCartData([], "0.00");
           try {
             await api.delete("/api/orders/cart/clear/");
             useAuthStore.getState().refreshCartCount();
-            api.get("/api/orders/cart/").catch(() => {});
+            api.get("/api/orders/cart/").then(({ data }) => useAuthStore.getState().setCartData(data.items || [], data.total || "0.00")).catch(() => {});
             toast.success(t("cart.cleared"));
           } catch {
             setItems(prev);
             setTotal(prevTotal);
+            useAuthStore.getState().setCartData(prev, prevTotal);
             toast.error(t("cart.clear_error"));
           }
         }}>
