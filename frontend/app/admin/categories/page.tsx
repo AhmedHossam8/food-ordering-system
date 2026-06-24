@@ -84,6 +84,28 @@ export default function AdminCategoriesPage() {
     } catch { toast.error(t("admin_cat.delete_error")); }
   };
 
+  const moveUp = async (cat: Category, index: number) => {
+    if (index === 0) return;
+    const prev = categories[index - 1];
+    try {
+      await api.put(`/api/menu/categories/${cat.id}/`, { ...cat, display_order: prev.display_order });
+      await api.put(`/api/menu/categories/${prev.id}/`, { ...prev, display_order: cat.display_order });
+      toast.success(t("admin_cat.reordered"));
+      fetchCategories();
+    } catch { toast.error(t("admin_cat.reorder_error")); }
+  };
+
+  const moveDown = async (cat: Category, index: number) => {
+    if (index === categories.length - 1) return;
+    const next = categories[index + 1];
+    try {
+      await api.put(`/api/menu/categories/${cat.id}/`, { ...cat, display_order: next.display_order });
+      await api.put(`/api/menu/categories/${next.id}/`, { ...next, display_order: cat.display_order });
+      toast.success(t("admin_cat.reordered"));
+      fetchCategories();
+    } catch { toast.error(t("admin_cat.reorder_error")); }
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex items-center justify-between mb-6">
@@ -116,16 +138,27 @@ export default function AdminCategoriesPage() {
                 <th className="text-start py-3 px-4 font-medium text-text-secondary">{t("admin_cat.name")}</th>
                 <th className="text-start py-3 px-4 font-medium text-text-secondary">{t("admin_cat.name_ar")}</th>
                 <th className="text-center py-3 px-4 font-medium text-text-secondary">{t("admin_cat.display_order")}</th>
+                <th className="text-center py-3 px-4 font-medium text-text-secondary">{t("admin_cat.reorder")}</th>
                 <th className="py-3 px-4" />
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {categories.map((cat) => (
+              {categories.map((cat, index) => (
                 <tr key={cat.id} className="hover:bg-surface-hover transition-colors">
                   <td className="py-3 px-4 font-medium text-text-secondary">{cat.id}</td>
                   <td className="py-3 px-4 font-medium">{cat.name}</td>
                   <td className="py-3 px-4 text-text-secondary">{cat.name_ar || "\u2014"}</td>
                   <td className="py-3 px-4 text-center text-text-secondary">{cat.display_order}</td>
+                  <td className="py-3 px-4">
+                    <div className="flex items-center justify-center gap-1">
+                      <button onClick={() => moveUp(cat, index)} disabled={index === 0} className="p-1 text-text-muted hover:text-text-primary disabled:opacity-30 disabled:cursor-not-allowed" title={t("admin_cat.move_up")}>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
+                      </button>
+                      <button onClick={() => moveDown(cat, index)} disabled={index === categories.length - 1} className="p-1 text-text-muted hover:text-text-primary disabled:opacity-30 disabled:cursor-not-allowed" title={t("admin_cat.move_down")}>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                      </button>
+                    </div>
+                  </td>
                   <td className="py-3 px-4">
                     <div className="flex gap-2 justify-end">
                       <button onClick={() => openEdit(cat)} className="text-primary-600 hover:underline text-xs font-medium">

@@ -299,6 +299,11 @@ const en: Record<string, string> = {
   "admin_cat.save_error": "Failed to save category",
   "admin_cat.delete_error": "Failed to delete category",
   "admin_cat.created": "Category created successfully",
+  "admin_cat.reorder": "Reorder",
+  "admin_cat.reordered": "Order updated",
+  "admin_cat.reorder_error": "Failed to reorder",
+  "admin_cat.move_up": "Move up",
+  "admin_cat.move_down": "Move down",
 
   /* Admin Users */
   "admin_users.title": "Users",
@@ -662,6 +667,11 @@ const ar: Record<string, string> = {
   "admin_cat.save_error": "فشل حفظ التصنيف",
   "admin_cat.delete_error": "فشل حذف التصنيف",
   "admin_cat.created": "تم إنشاء التصنيف بنجاح",
+  "admin_cat.reorder": "إعادة ترتيب",
+  "admin_cat.reordered": "تم تحديث الترتيب",
+  "admin_cat.reorder_error": "فشل إعادة الترتيب",
+  "admin_cat.move_up": "تحريك لأعلى",
+  "admin_cat.move_down": "تحريك لأسفل",
 
   /* Admin Users */
   "admin_users.title": "المستخدمين",
