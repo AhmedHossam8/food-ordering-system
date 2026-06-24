@@ -113,6 +113,8 @@ const en: Record<string, string> = {
   "cart.update_error": "Failed to update",
   "cart.removed": "Item removed",
   "cart.remove_error": "Failed to remove",
+  "cart.cleared": "Cart cleared",
+  "cart.clear_error": "Failed to clear cart",
 
   /* Checkout */
   "checkout.title": "Checkout",
@@ -455,6 +457,8 @@ const ar: Record<string, string> = {
   "cart.update_error": "فشل التحديث",
   "cart.removed": "تمت إزالة العنصر",
   "cart.remove_error": "فشلت الإزالة",
+  "cart.cleared": "تم مسح السلة",
+  "cart.clear_error": "فشل مسح السلة",
 
   /* Checkout */
   "checkout.title": "إتمام الطلب",

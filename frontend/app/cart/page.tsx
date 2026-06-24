@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
 import { useLanguage } from "@/lib/language";
+import { useAuthStore } from "@/lib/store";
 import { formatPrice } from "@/lib/utils";
 import toast from "react-hot-toast";
 import Button from "@/components/ui/Button";
@@ -76,7 +77,15 @@ export default function CartPage() {
           <h1 className="text-3xl font-bold text-text-primary">{t("cart.title")}</h1>
           <p className="text-text-secondary text-sm mt-1">{items.length} {items.length !== 1 ? t("cart.items") : t("cart.item")}</p>
         </div>
-        <Button variant="ghost" onClick={() => { setItems([]); setTotal("0.00"); }}>
+        <Button variant="ghost" onClick={async () => {
+          try {
+            await api.delete("/api/orders/cart/clear/");
+            setItems([]);
+            setTotal("0.00");
+            useAuthStore.getState().refreshCartCount();
+            toast.success(t("cart.cleared"));
+          } catch { toast.error(t("cart.clear_error")); }
+        }}>
           {t("cart.clear")}
         </Button>
       </div>

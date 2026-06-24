@@ -149,8 +149,8 @@ function MenuPageContent() {
                 <p className="text-xs text-text-muted mt-1 line-clamp-2">{item.description_localized || item.description}</p>
                 <div className="flex items-center justify-between mt-3">
                   <span className="text-lg font-bold text-primary-600">{formatPrice(item.price, lang)}</span>
-                  <Button size="sm" onClick={() => addToCart(item.id, 1)} loading={addingItems.has(item.id)}>
-                    {addingItems.has(item.id) ? t("menu.adding") : t("menu.add")}
+                  <Button size="sm" onClick={() => { setSelectedItem(item); setQuantity(1); }}>
+                    {t("menu.add")}
                   </Button>
                 </div>
               </div>

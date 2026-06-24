@@ -71,6 +71,13 @@ class RemoveCartItemView(generics.DestroyAPIView):
         return CartItem.objects.filter(cart=cart)
 
 
+class ClearCartView(APIView):
+    def delete(self, request):
+        cart = get_cart(request)
+        cart.items.all().delete()
+        return Response({"detail": "Cart cleared."}, status=status.HTTP_204_NO_CONTENT)
+
+
 class CreateOrderView(generics.CreateAPIView):
     serializer_class = CreateOrderSerializer
     permission_classes = [permissions.IsAuthenticated]
